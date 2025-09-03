@@ -1,3 +1,5 @@
+// /public/script.js
+
 document.addEventListener('DOMContentLoaded', function() {
     
     // --- LÓGICA DA CONTAGEM REGRESSIVA ---
@@ -75,6 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target == giftsModal) giftsModal.style.display = "none";
     };
 
+    // Aplica uma máscara de formatação ao campo de CPF
     const cpfInput = document.getElementById('cpf');
     cpfInput.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, '');
@@ -84,13 +87,14 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.value = value;
     });
 
+    // Carrega a lista de presentes dinamicamente do servidor
     const giftContainer = document.getElementById('giftOptionsContainer');
     const loadGifts = async () => {
         giftsModal.style.display = "block";
         giftContainer.innerHTML = '<p>Carregando opções de presentes...</p>';
         try {
-            // Usa caminho relativo, pois o front e o back estão no mesmo servidor
-            const response = await fetch('/api/presentes');
+            // [ALTERADO AQUI] - Adicionado o IP público para buscar os presentes
+            const response = await fetch('http://54.196.105.107:3000/api/presentes');
             const result = await response.json();
             if (result.success) {
                 giftContainer.innerHTML = '';
@@ -115,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // Adiciona a funcionalidade de "copiar" para os botões de PIX
     giftContainer.addEventListener('click', (event) => {
         if (event.target.classList.contains('btn-pix')) {
             const chavePix = event.target.dataset.pixkey;
@@ -124,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Envia os dados do formulário de RSVP para o servidor
     const rsvpForm = document.getElementById('rsvpForm');
     rsvpForm.addEventListener('submit', function(event) {
         event.preventDefault();
@@ -137,8 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('cpf', document.getElementById('cpf').value);
         formData.append('phone', document.getElementById('phone').value);
 
-        // Usa caminho relativo
-        fetch('/confirmar-presenca', {
+        // [CORRETO] - Este já estava com o IP público
+        fetch('http://54.196.105.107:3000/confirmar-presenca', {
             method: 'POST',
             body: formData
         })
