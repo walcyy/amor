@@ -1,17 +1,22 @@
-// server.js
-
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
+// A AWS vai fornecer a porta através de process.env.PORT
+const PORT = process.env.PORT || 3000;
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve os arquivos estáticos (HTML, CSS, JS, Imagens) da pasta 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Configuração da conexão com o Banco de Dados MySQL
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -22,7 +27,7 @@ const pool = mysql.createPool({
     queueLimit: 0
 }).promise();
 
-// Rota para confirmação de presença (RSVP) - ATUALIZADA
+// Rota para confirmação de presença (RSVP)
 app.post('/confirmar-presenca', async (req, res) => {
     const { fullName, cpf, phone } = req.body;
 
@@ -31,7 +36,6 @@ app.post('/confirmar-presenca', async (req, res) => {
     }
 
     try {
-        // Passo 1: Verificar se o CPF ou Telefone já existem
         const checkSql = "SELECT * FROM convidados WHERE cpf = ? OR telefone = ?";
         const [existingGuests] = await pool.query(checkSql, [cpf, phone]);
 
@@ -45,7 +49,6 @@ app.post('/confirmar-presenca', async (req, res) => {
             }
         }
 
-        // Passo 2: Inserir o novo convidado (agora com CPF)
         const insertSql = "INSERT INTO convidados (nome, cpf, telefone) VALUES (?, ?, ?)";
         await pool.query(insertSql, [fullName, cpf, phone]);
 
@@ -57,7 +60,7 @@ app.post('/confirmar-presenca', async (req, res) => {
     }
 });
 
-// Rota para buscar a lista de presentes
+// Rota para buscar a lista de presentes do banco de dados
 app.get('/api/presentes', async (req, res) => {
     try {
         const sql = "SELECT titulo, descricao, tipo, link_url, chave_pix, texto_botao FROM presentes ORDER BY id";
@@ -69,7 +72,7 @@ app.get('/api/presentes', async (req, res) => {
     }
 });
 
+// Inicia o servidor
 app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
-    console.log('Aguardando conexões...');
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
