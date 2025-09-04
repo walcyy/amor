@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target == giftsModal) giftsModal.style.display = "none";
     };
 
+    // Aplica uma máscara de formatação ao campo de CPF
     const cpfInput = document.getElementById('cpf');
     cpfInput.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, '');
@@ -84,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.value = value;
     });
 
+    // Carrega a lista de presentes dinamicamente do servidor
     const giftContainer = document.getElementById('giftOptionsContainer');
     const loadGifts = async () => {
         giftsModal.style.display = "block";
@@ -114,6 +116,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // Adiciona a funcionalidade de "copiar" para os botões de PIX
     giftContainer.addEventListener('click', (event) => {
         if (event.target.classList.contains('btn-pix')) {
             const chavePix = event.target.dataset.pixkey;
@@ -123,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Envia os dados do formulário de RSVP para o servidor
     const rsvpForm = document.getElementById('rsvpForm');
     rsvpForm.addEventListener('submit', function(event) {
         event.preventDefault();
@@ -146,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            // [LÓGICA CORRIGIDA]
+            // [LÓGICA CORRETA AQUI]
             if (data.success) {
                 // Se o servidor responder com sucesso, REDIRECIONA
                 const eventDetails = {
