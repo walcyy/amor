@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
         giftsModal.style.display = "block";
         giftContainer.innerHTML = '<p>Carregando opções de presentes...</p>';
         try {
-            const response = await fetch('http://3.81.0.138:3000/api/presentes');
+            // [AJUSTADO] Usa caminho relativo
+            const response = await fetch('/api/presentes');
             const result = await response.json();
             if (result.success) {
                 giftContainer.innerHTML = '';
@@ -144,15 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('cpf', cpf);
         formData.append('phone', phone);
 
-        fetch('http://3.81.0.138:3000/confirmar-presenca', {
+        // [AJUSTADO] Usa caminho relativo
+        fetch('/confirmar-presenca', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            // [LÓGICA CORRETA AQUI]
             if (data.success) {
-                // Se o servidor responder com sucesso, REDIRECIONA
                 const eventDetails = {
                     nome: fullName,
                     data: '01 de Junho de 2026',
@@ -162,7 +162,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const queryString = new URLSearchParams(eventDetails).toString();
                 window.location.href = `confirmacao.html?${queryString}`;
             } else {
-                // Se o servidor responder com erro, MOSTRA O ALERTA
                 alert(data.message);
             }
         })
