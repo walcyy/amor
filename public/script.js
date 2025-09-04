@@ -1,5 +1,3 @@
-// /public/script.js
-
 document.addEventListener('DOMContentLoaded', function() {
     
     // --- LÓGICA DA CONTAGEM REGRESSIVA ---
@@ -93,8 +91,8 @@ document.addEventListener('DOMContentLoaded', function() {
         giftsModal.style.display = "block";
         giftContainer.innerHTML = '<p>Carregando opções de presentes...</p>';
         try {
-            // [ALTERADO AQUI] - Adicionado o IP público para buscar os presentes
-            const response = await fetch('http://54.196.105.107:3000/api/presentes');
+            // Usa caminho relativo
+            const response = await fetch('http://3.81.0.138:3000/api/presentes');
             const result = await response.json();
             if (result.success) {
                 giftContainer.innerHTML = '';
@@ -138,22 +136,34 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
         submitButton.textContent = 'Enviando...';
         
-        const formData = new URLSearchParams();
-        formData.append('fullName', document.getElementById('fullName').value);
-        formData.append('cpf', document.getElementById('cpf').value);
-        formData.append('phone', document.getElementById('phone').value);
+        const fullName = document.getElementById('fullName').value;
+        const cpf = document.getElementById('cpf').value;
+        const phone = document.getElementById('phone').value;
 
-        // [CORRETO] - Este já estava com o IP público
-        fetch('http://54.196.105.107:3000/confirmar-presenca', {
+        const formData = new URLSearchParams();
+        formData.append('fullName', fullName);
+        formData.append('cpf', cpf);
+        formData.append('phone', phone);
+
+        // Usa caminho relativo
+        fetch('http://3.81.0.138:3000/confirmar-presenca', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
+            // [AJUSTADO] Redireciona em caso de sucesso, mostra alerta em caso de falha
             if (data.success) {
-                rsvpForm.reset();
-                rsvpModal.style.display = "none";
+                const eventDetails = {
+                    nome: fullName,
+                    data: '01 de Junho de 2026',
+                    horario: '16:00',
+                    local: 'Igreja Matriz São Pedro Apóstolo'
+                };
+                const queryString = new URLSearchParams(eventDetails).toString();
+                window.location.href = `confirmacao.html?${queryString}`;
+            } else {
+                alert(data.message);
             }
         })
         .catch(error => {
