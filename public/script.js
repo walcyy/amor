@@ -155,8 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 const eventDetails = {
                     nome: fullName,
-                    data: '01 de Junho de 2026',
-                    horario: '16:00',
+                    data: '08 de Junho de 2026',
+                    horario: '19:00',
                     local: 'Igreja Matriz São Pedro Apóstolo'
                 };
                 const queryString = new URLSearchParams(eventDetails).toString();
