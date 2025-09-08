@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.value = value;
     });
 
-    // Carrega a lista de presentes dinamicamente do servidor
+    // Carrega a lista de presentes dinamicamente do servidor 2.0
     const giftContainer = document.getElementById('giftOptionsContainer');
     const loadGifts = async () => {
         giftsModal.style.display = "block";
