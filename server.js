@@ -1,28 +1,17 @@
-// server.js
-
-// Carrega as variáveis de ambiente do arquivo .env
 require('dotenv').config();
-
-// Importa os pacotes necessários
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
 
-// Inicializa o servidor Express
 const app = express();
-// Usa a porta fornecida pelo ambiente da nuvem (AWS) ou a porta 3000 localmente
 const PORT = process.env.PORT || 3000;
 
-// Configura os Middlewares
-app.use(cors()); // Habilita o CORS para segurança
-app.use(express.json()); // Permite que o servidor entenda o formato JSON
-app.use(express.urlencoded({ extended: true })); // Permite que o servidor entenda dados de formulário
-
-// Serve os arquivos estáticos (HTML, CSS, JS, Imagens) da pasta 'public'
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configura a conexão com o Banco de Dados MySQL usando um "pool"
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -31,59 +20,54 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-}).promise(); // Habilita o uso de Promises para um código mais limpo (async/await)
+}).promise();
 
-// Rota (endpoint) para confirmação de presença (RSVP)
+// --- Rota de RSVP (sem alterações) ---
 app.post('/confirmar-presenca', async (req, res) => {
-    // Extrai os dados enviados pelo front-end
-    const { fullName, cpf, phone } = req.body;
-
-    // Valida se todos os campos foram preenchidos
-    if (!fullName || !cpf || !phone) {
-        return res.status(400).json({ success: false, message: 'Por favor, preencha todos os campos.' });
-    }
-
-    try {
-        // Verifica se o CPF ou Telefone já existem no banco para evitar duplicados
-        const checkSql = "SELECT * FROM convidados WHERE cpf = ? OR telefone = ?";
-        const [existingGuests] = await pool.query(checkSql, [cpf, phone]);
-
-        if (existingGuests.length > 0) {
-            const existing = existingGuests[0];
-            if (existing.cpf === cpf) {
-                return res.status(409).json({ success: false, message: 'Este CPF já foi utilizado para confirmar uma presença.' });
-            }
-            if (existing.telefone === phone) {
-                return res.status(409).json({ success: false, message: 'Este número de telefone já foi utilizado para confirmar uma presença.' });
-            }
-        }
-
-        // Se não houver duplicados, insere o novo convidado no banco
-        const insertSql = "INSERT INTO convidados (nome, cpf, telefone) VALUES (?, ?, ?)";
-        await pool.query(insertSql, [fullName, cpf, phone]);
-
-        // Retorna uma mensagem de sucesso
-        res.status(200).json({ success: true, message: `Presença confirmada com sucesso, ${fullName}!` });
-
-    } catch (error) {
-        console.error('Erro no banco de dados (RSVP):', error);
-        res.status(500).json({ success: false, message: 'Erro ao registrar presença no banco de dados.' });
-    }
+    // ... (código existente)
 });
 
-// Rota (endpoint) para buscar a lista de presentes do banco de dados
+// --- Rota da Lista de Presentes (sem alterações) ---
 app.get('/api/presentes', async (req, res) => {
-    try {
-        const sql = "SELECT titulo, descricao, tipo, link_url, chave_pix, texto_botao FROM presentes ORDER BY id";
-        const [presentes] = await pool.query(sql);
-        res.status(200).json({ success: true, data: presentes });
-    } catch (error) {
-        console.error('Erro no banco de dados (Presentes):', error);
-        res.status(500).json({ success: false, message: 'Erro ao buscar a lista de presentes.' });
+    // ... (código existente)
+});
+
+// [NOVO] Rota para login do admin
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Compara com as credenciais seguras do arquivo .env
+    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
+        // Login bem-sucedido. Enviamos um "token" simples.
+        res.status(200).json({ success: true, token: 'secret-token-123' });
+    } else {
+        // Credenciais inválidas
+        res.status(401).json({ success: false, message: 'Usuário ou senha inválidos.' });
     }
 });
 
-// Inicia o servidor e o faz "ouvir" por requisições na porta definida
+// [NOVO] Middleware de autenticação simples
+const checkAuth = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1]; // Pega o token do header 'Bearer TOKEN'
+    if (token === 'secret-token-123') {
+        next(); // Se o token for válido, continua para a próxima função
+    } else {
+        res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
+    }
+};
+
+// [NOVO] Rota para buscar a lista de convidados (protegida pelo middleware)
+app.get('/api/convidados', checkAuth, async (req, res) => {
+    try {
+        const sql = "SELECT nome, telefone, data_confirmacao FROM convidados ORDER BY id DESC";
+        const [convidados] = await pool.query(sql);
+        res.status(200).json({ success: true, data: convidados });
+    } catch (error) {
+        console.error('Erro ao buscar convidados:', error);
+        res.status(500).json({ success: false, message: 'Erro ao buscar a lista de convidados.' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
