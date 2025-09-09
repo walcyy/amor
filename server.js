@@ -22,41 +22,66 @@ const pool = mysql.createPool({
     queueLimit: 0
 }).promise();
 
-// --- Rota de RSVP (sem alterações) ---
+// --- Rota de RSVP ---
 app.post('/confirmar-presenca', async (req, res) => {
-    // ... (código existente)
+    const { fullName, cpf, phone } = req.body;
+    if (!fullName || !cpf || !phone) {
+        return res.status(400).json({ success: false, message: 'Por favor, preencha todos os campos.' });
+    }
+    try {
+        const checkSql = "SELECT * FROM convidados WHERE cpf = ? OR telefone = ?";
+        const [existingGuests] = await pool.query(checkSql, [cpf, phone]);
+        if (existingGuests.length > 0) {
+            const existing = existingGuests[0];
+            if (existing.cpf === cpf) {
+                return res.status(409).json({ success: false, message: 'Este CPF já foi utilizado para confirmar uma presença.' });
+            }
+            if (existing.telefone === phone) {
+                return res.status(409).json({ success: false, message: 'Este número de telefone já foi utilizado para confirmar uma presença.' });
+            }
+        }
+        const insertSql = "INSERT INTO convidados (nome, cpf, telefone) VALUES (?, ?, ?)";
+        await pool.query(insertSql, [fullName, cpf, phone]);
+        res.status(200).json({ success: true, message: `Presença confirmada com sucesso, ${fullName}!` });
+    } catch (error) {
+        console.error('Erro no banco de dados (RSVP):', error);
+        res.status(500).json({ success: false, message: 'Erro ao registrar presença no banco de dados.' });
+    }
 });
 
-// --- Rota da Lista de Presentes (sem alterações) ---
+// --- Rota da Lista de Presentes ---
 app.get('/api/presentes', async (req, res) => {
-    // ... (código existente)
+    try {
+        const sql = "SELECT titulo, descricao, tipo, link_url, chave_pix, texto_botao FROM presentes ORDER BY id";
+        const [presentes] = await pool.query(sql);
+        res.status(200).json({ success: true, data: presentes });
+    } catch (error) {
+        console.error('Erro no banco de dados (Presentes):', error);
+        res.status(500).json({ success: false, message: 'Erro ao buscar a lista de presentes.' });
+    }
 });
 
-// [NOVO] Rota para login do admin
+// --- Rota para login do admin ---
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    
-    // Compara com as credenciais seguras do arquivo .env
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
-        // Login bem-sucedido. Enviamos um "token" simples.
         res.status(200).json({ success: true, token: 'secret-token-123' });
     } else {
-        // Credenciais inválidas
         res.status(401).json({ success: false, message: 'Usuário ou senha inválidos.' });
     }
 });
 
-// [NOVO] Middleware de autenticação simples
+// --- Middleware de autenticação ---
 const checkAuth = (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1]; // Pega o token do header 'Bearer TOKEN'
+    const token = req.headers.authorization?.split(' ')[1];
     if (token === 'secret-token-123') {
-        next(); // Se o token for válido, continua para a próxima função
+        next();
     } else {
         res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
     }
 };
 
-// [NOVO] Rota para buscar a lista de convidados (protegida pelo middleware)
+// --- Rota para buscar a lista de convidados (protegida) ---
 app.get('/api/convidados', checkAuth, async (req, res) => {
     try {
         const sql = "SELECT nome, telefone, data_confirmacao FROM convidados ORDER BY id DESC";

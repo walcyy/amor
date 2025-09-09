@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    // Pega o token de autenticação guardado na sessão do navegador
     const token = sessionStorage.getItem('authToken');
 
-    // Se não houver token, o usuário não está logado. Redireciona para a página de login.
     if (!token) {
-        window.location.href = 'login.html';
+        window.location.href = 'index.html'; // Redireciona para a página principal se não estiver logado
         return;
     }
 
@@ -12,7 +10,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const guestCount = document.getElementById('guestCount');
 
     try {
-        // Envia a requisição para a API, incluindo o token para autorização
         const response = await fetch('/api/convidados', {
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -26,8 +23,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             result.data.forEach(convidado => {
                 const row = document.createElement('tr');
-                
-                // Formata a data para o padrão brasileiro
                 const dataConfirmacao = new Date(convidado.data_confirmacao).toLocaleString('pt-BR');
 
                 row.innerHTML = `
@@ -38,9 +33,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 guestListBody.appendChild(row);
             });
         } else {
-            // Se o token for inválido, o servidor retornará um erro. Redireciona para o login.
             alert(result.message);
-            window.location.href = 'login.html';
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'index.html'; // Redireciona se o token for inválido
         }
     } catch (error) {
         alert('Erro ao carregar a lista de convidados.');
