@@ -9,114 +9,48 @@
 <body>
     <div class="container">
         <header class="header">
+            <div class="login-buttons-container">
+                <button id="guestLoginBtn" class="btn btn-secondary">Área do Convidado</button>
+                <button id="adminLoginBtn" class="btn btn-secondary">Área dos Noivos</button>
+            </div>
             <h1>Steffany <span class="heart">♥</span> Walci</h1>
             <h2>Juntos para Sempre</h2>
         </header>
         
-        <section class="countdown-section">
-            <h3>Nosso Grande Dia Chega Em:</h3>
-            <div id="countdown" class="countdown">
-                <div><span id="days"></span>Dias</div>
-                <div><span id="hours"></span>Horas</div>
-                <div><span id="minutes"></span>Minutos</div>
-                <div><span id="seconds"></span>Segundos</div>
+        <div id="rsvpModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeRsvpBtn">×</span>
+                <h3>Confirmar Presença</h3>
+                <form id="rsvpForm">
+                    <label for="fullName">Nome Completo:</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                    <label for="cpf">CPF:</label>
+                    <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required>
+                    <label for="phone">Telefone (com DDD):</label>
+                    <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX" required>
+                    <label for="passwordRsvp">Crie uma senha de acesso:</label>
+                    <input type="password" id="passwordRsvp" name="passwordRsvp" required>
+                    <button type="submit" class="btn">Enviar Confirmação</button>
+                </form>
             </div>
-        </section>
-
-        <section class="message-section">
-            <p>Com imensa alegria e o coração repleto de amor, convidamos você para celebrar conosco o início de nossa vida a dois.</p>
-            <p>Sua presença será a maior de todas as bênçãos.</p>
-        </section>
-
-        <section class="details-section">
-            <div class="details-card">
-                <h3>Cerimônia Religiosa</h3>
-                <p><strong>Data:</strong> 01 de Junho de 2026</p>
-                <p><strong>Horário:</strong> 16:00</p>
-                <p><strong>Local:</strong> Igreja Matriz São Pedro Apóstolo</p>
-                <p>Av. Borges de Medeiros, 2659 - Gramado, RS</p>
-                <a href="https://www.google.com/maps/place/Igreja+Matriz+S%C3%A3o+Pedro+Ap%C3%B3stolo/@-29.37837,-50.87635,17z/data=!3m1!4b1!4m6!3m5!1s0x95193245c317931d:0x93a2d3383a48e8a3!8m2!3d-29.3783747!4d-50.8737751!16s%2Fg%2F122g220w?entry=ttu" target="_blank" class="btn">Ver no Mapa</a>
-            </div>
-            <div class="details-card">
-                <h3>Recepção</h3>
-                <p><strong>Horário:</strong> 18:00</p>
-                <p><strong>Local:</strong> Salão de Festas Encantado</p>
-                <p>Avenida Principal, 456 - Gramado, RS</p>
-                <a href="https://www.google.com/maps" target="_blank" class="btn">Ver no Mapa</a>
-            </div>
-        </section>
-
-        <section class="church-carousel-section">
-            <h3>Nossa Igreja</h3>
-            <div class="carousel-container">
-                <div class="carousel-slide" id="church-carousel-slide">
-                    <img src="images/igreja1.jpg" alt="Igreja Matriz São Pedro em Gramado" class="active">
-                    <img src="images/igreja2.jpg" alt="Vista noturna da Igreja São Pedro">
-                    <img src="images/igreja3.jpg" alt="Interior da Igreja Matriz São Pedro">
-                </div>
-                <button class="carousel-btn prev" id="prevBtn">❮</button>
-                <button class="carousel-btn next" id="nextBtn">❯</button>
-                <div class="carousel-dots" id="carouselDots"></div>
-            </div>
-        </section>
-
-        <section class="gifts-section">
-            <h3>Lista de Presentes</h3>
-            <p>Sua presença já é o maior presente. Mas se desejar nos presentear, aqui estão algumas sugestões com muito carinho.</p>
-            <button id="openGiftsBtn" class="btn">Ver Opções de Presentes</button>
-        </section>
-
-        <section class="rsvp-section">
-            <h3>Confirme sua Presença</h3>
-            <p>Por favor, confirme sua presença até 01 de Maio de 2026.</p>
-            <button id="openRsvpBtn" class="btn">Confirmar Presença (RSVP)</button>
-        </section>
-
-        <footer class="footer">
-            <p id="adminLoginTrigger">© 2025 Steffany & Walci. Todos os direitos reservados.</p>
-        </footer>
-    </div>
-
-    <div id="rsvpModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeRsvpBtn">×</span>
-            <h3>Confirmar Presença</h3>
-            <form id="rsvpForm">
-                <label for="fullName">Nome Completo:</label>
-                <input type="text" id="fullName" name="fullName" required>
-                <label for="cpf">CPF:</label>
-                <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required>
-                <label for="phone">Telefone (com DDD):</label>
-                <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX" required>
-                <button type="submit" class="btn">Enviar Confirmação</button>
-            </form>
         </div>
-    </div>
-
-    <div id="giftsModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeGiftsBtn">×</span>
-            <h3>Lista de Presentes</h3>
-            <p>Pensamos em algumas formas de nos presentear. Fique à vontade para escolher a que preferir!</p>
-            <div id="giftOptionsContainer" class="gift-options"></div>
+        
+        <div id="guestLoginModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="closeGuestLoginBtn">×</span>
+                <h3>Área do Convidado</h3>
+                <form id="guestLoginForm">
+                    <label for="cpfLogin">CPF:</label>
+                    <input type="text" id="cpfLogin" name="cpfLogin" placeholder="000.000.000-00" required>
+                    <label for="passwordLogin">Senha:</label>
+                    <input type="password" id="passwordLogin" name="passwordLogin" required>
+                    <button type="submit" class="btn">Entrar</button>
+                    <p id="guestLoginMessage" class="login-message"></p>
+                </form>
+            </div>
         </div>
-    </div>
-    
-    <div id="adminLoginModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" id="closeAdminLoginBtn">×</span>
-            <h3>Área dos Noivos</h3>
-            <form id="adminLoginForm">
-                <label for="username">Usuário:</label>
-                <input type="text" id="username" name="username" required>
-                <label for="password">Senha:</label>
-                <input type="password" id="password" name="password" required>
-                <button type="submit" class="btn">Entrar</button>
-                <p id="loginMessage" class="login-message"></p>
-            </form>
+        
         </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
