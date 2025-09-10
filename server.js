@@ -35,7 +35,7 @@ app.post('/confirmar-presenca', async (req, res) => {
             return res.status(409).json({ success: false, message: 'CPF ou Telefone já cadastrados.' });
         }
         const insertSql = "INSERT INTO convidados (nome, cpf, senha, telefone) VALUES (?, ?, ?, ?)";
-        await pool.query(insertSql, [fullName, cpf, password, phone]); // Adicionada a senha
+        await pool.query(insertSql, [fullName, cpf, password, phone]);
         res.status(200).json({ success: true, message: `Presença confirmada com sucesso, ${fullName}!` });
     } catch (error) {
         console.error('Erro no banco de dados (RSVP):', error);
@@ -54,7 +54,6 @@ app.post('/api/guest-login', async (req, res) => {
         const [guests] = await pool.query(sql, [cpf, password]);
         if (guests.length > 0) {
             const guest = guests[0];
-            // Login bem-sucedido. Usamos o ID do convidado como nosso "token" simples.
             res.status(200).json({ success: true, token: guest.id, nome: guest.nome });
         } else {
             res.status(401).json({ success: false, message: 'CPF ou Senha inválidos.' });
@@ -80,8 +79,8 @@ app.get('/api/presentes', async (req, res) => {
 // [NOVO] - Middleware para proteger rotas de convidados
 const checkGuestAuth = (req, res, next) => {
     const guestId = req.headers.authorization?.split(' ')[1];
-    if (guestId) {
-        req.guestId = guestId; // Adiciona o ID do convidado à requisição
+    if (guestId && !isNaN(guestId)) {
+        req.guestId = guestId;
         next();
     } else {
         res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
@@ -91,23 +90,20 @@ const checkGuestAuth = (req, res, next) => {
 // [NOVO] - Rota para um convidado selecionar um presente
 app.post('/api/selecionar-presente', checkGuestAuth, async (req, res) => {
     const { presenteId } = req.body;
-    const { guestId } = req; // Pega o ID do convidado do middleware
+    const { guestId } = req;
 
     try {
-        // Verifica se o presente já não foi escolhido
         const checkGiftSql = "SELECT convidado_id FROM presentes WHERE id = ?";
         const [gifts] = await pool.query(checkGiftSql, [presenteId]);
         if (gifts.length === 0 || gifts[0].convidado_id !== null) {
             return res.status(409).json({ success: false, message: 'Este presente não está mais disponível.' });
         }
 
-        // Atualiza a tabela de presentes com o ID do convidado
         const updateSql = "UPDATE presentes SET convidado_id = ? WHERE id = ?";
         await pool.query(updateSql, [guestId, presenteId]);
         res.status(200).json({ success: true, message: 'Presente selecionado com sucesso! Muito obrigado!' });
     } catch (error) {
         console.error('Erro ao selecionar presente:', error);
-        // Verifica se o erro é de chave duplicada (convidado já escolheu um presente)
         if (error.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ success: false, message: 'Você já selecionou um presente.' });
         }
@@ -138,7 +134,6 @@ const checkAuth = (req, res, next) => {
 // [ATUALIZADO] - Rota da lista de convidados para noivos agora mostra o presente
 app.get('/api/convidados', checkAuth, async (req, res) => {
     try {
-        // Usamos um LEFT JOIN para buscar o título do presente que o convidado escolheu
         const sql = `
             SELECT 
                 c.nome, 

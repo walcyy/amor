@@ -57,6 +57,28 @@ body {
     position: relative;
 }
 
+.login-buttons-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 20;
+}
+
+.btn.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 8px 15px;
+    margin-top: 0;
+}
+
+.btn.btn-secondary:hover {
+    background: var(--accent-color);
+    color: var(--dark-brown);
+}
+
 .header h1 {
     font-family: 'Great Vibes', cursive;
     font-size: 4.5em;
@@ -65,6 +87,7 @@ body {
     margin-bottom: 10px;
     position: relative;
     animation: slideInLeft 1s ease-out;
+    padding-top: 50px; /* Adiciona espaço para os botões de login não sobreporem o título */
 }
 
 @keyframes slideInLeft {
@@ -384,24 +407,24 @@ p {
     cursor: pointer;
 }
 
-#rsvpForm {
+#rsvpForm, #adminLoginForm, #guestLoginForm {
     display: flex;
     flex-direction: column;
     gap: 15px;
     margin-top: 20px;
 }
-#rsvpForm label {
+#rsvpForm label, #adminLoginForm label, #guestLoginForm label {
     text-align: left;
     font-weight: bold;
     color: var(--dark-brown);
 }
-#rsvpForm input {
+#rsvpForm input, #adminLoginForm input, #guestLoginForm input {
     padding: 12px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 1em;
 }
-#rsvpForm button {
+#rsvpForm button, #adminLoginForm button, #guestLoginForm button {
     margin-top: 10px;
     width: 100%;
 }
@@ -445,7 +468,7 @@ p {
 
 @media (max-width: 768px) {
     .container { padding: 25px; }
-    .header h1 { font-size: 3.5em; }
+    .header h1 { font-size: 3.5em; padding-top: 70px; /* Mais espaço em telas menores */ }
     .header h2 { font-size: 1.4em; }
     h3 { font-size: 2em; }
     p { font-size: 1em; }
@@ -477,6 +500,14 @@ p {
 
     .carousel-slide { height: 250px; }
     .carousel-btn { font-size: 1.2em; }
+    
+    .login-buttons-container {
+        width: 100%;
+        position: static;
+        padding-bottom: 20px;
+        justify-content: center;
+    }
+    .header h1 { padding-top: 0; }
 }
 
 /* ============================================== */
@@ -507,7 +538,6 @@ p {
 
 .confirmation-card {
     margin: 30px auto;
-    text-align: left;
 }
 
 .confirmation-card h4 {
@@ -522,47 +552,18 @@ p {
 /* == Estilos para as Páginas de Admin == */
 /* ============================================== */
 
-#adminLoginTrigger {
-    cursor: pointer;
-    display: inline-block;
-    transition: color 0.3s ease;
-}
-
-#adminLoginTrigger:hover {
-    color: var(--accent-color);
-}
-
-#adminLoginForm {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-#adminLoginForm label {
-    text-align: left;
-    font-weight: bold;
-    color: var(--dark-brown);
-}
-
-#adminLoginForm input {
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 1em;
-}
-
 .login-message {
     margin-top: 15px;
     font-weight: bold;
     color: red;
+    min-height: 1.2em;
 }
 
 .admin-container {
     max-width: 1000px;
 }
 
-.guest-list-section {
+.guest-list-section, .gift-list-section {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     padding-top: 20px;
 }
@@ -572,6 +573,7 @@ p {
     margin-top: 20px;
     border-collapse: collapse;
     color: var(--text-color-light);
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 .guest-table th, .guest-table td {
@@ -585,32 +587,6 @@ p {
     color: var(--accent-color);
 }
 
-/* [NOVO] - Estilos para os botões de login no topo */
-.login-buttons-container {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-}
-.btn.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
-    padding: 8px 15px;
-    margin-top: 0;
-}
-.btn.btn-secondary:hover {
-    background: var(--accent-color);
-    color: var(--dark-brown);
-}
-
-/* [NOVO] - Estilos para a lista de presentes do convidado */
-#welcomeMessage {
-    color: var(--text-color-light);
-    font-size: 1.5em;
-    margin-bottom: 10px;
-}
 .gift-list-item {
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -618,15 +594,31 @@ p {
     padding: 20px;
     margin-bottom: 20px;
     text-align: left;
+    color: var(--text-color-light);
 }
+
 .gift-list-item h4 {
     color: var(--accent-color);
+    margin-bottom: 10px;
 }
+
+.gift-list-item p {
+    color: var(--text-color-light);
+}
+
 .gift-list-item.taken {
-    border-color: #ff4d4d; /* Vermelho para presentes já escolhidos */
+    border-color: #ff4d4d;
+    opacity: 0.6;
 }
+
 .btn-select-gift:disabled {
     background-color: #888;
+    color: #ccc;
     cursor: not-allowed;
     border: none;
+}
+#welcomeMessage {
+    color: var(--text-color-light);
+    font-size: 1.5em;
+    margin-bottom: 10px;
 }

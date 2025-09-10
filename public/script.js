@@ -1,72 +1,159 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (Lógica do contador e carrossel continua igual) ...
-
-    // --- LÓGICA DOS MODAIS E CONEXÕES ---
+    
+    // --- LÓGICA DA CONTAGEM REGRESSIVA (se existir na página) ---
+    const countdownEl = document.getElementById('countdown');
+    if (countdownEl) {
+        const weddingDate = new Date('2026-06-01T16:00:00').getTime();
+        const countdownInterval = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = weddingDate - now;
+            if (distance < 0) {
+                clearInterval(countdownInterval);
+                countdownEl.innerHTML = "<h2>O Grande Dia Chegou!</h2>";
+                return;
+            }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            document.getElementById('days').innerText = String(days).padStart(2, '0');
+            document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+        }, 1000);
+    }
+    
+    // --- LÓGICA DOS MODAIS ---
     const rsvpModal = document.getElementById('rsvpModal');
-    const giftsModal = document.getElementById('giftsModal');
     const adminLoginModal = document.getElementById('adminLoginModal');
-    const guestLoginModal = document.getElementById('guestLoginModal'); // [NOVO]
+    const guestLoginModal = document.getElementById('guestLoginModal');
     
-    // Botões que abrem os modais
     const openRsvpBtn = document.getElementById('openRsvpBtn');
-    const openGiftsBtn = document.getElementById('openGiftsBtn');
-    const adminLoginBtn = document.getElementById('adminLoginBtn'); // [NOVO]
-    const guestLoginBtn = document.getElementById('guestLoginBtn'); // [NOVO]
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const guestLoginBtn = document.getElementById('guestLoginBtn');
+    const guestLoginBtn2 = document.getElementById('guestLoginBtn2');
     
-    // Botões que fecham os modais
     const closeRsvpBtn = document.getElementById('closeRsvpBtn');
-    const closeGiftsBtn = document.getElementById('closeGiftsBtn');
     const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
-    const closeGuestLoginBtn = document.getElementById('closeGuestLoginBtn'); // [NOVO]
+    const closeGuestLoginBtn = document.getElementById('closeGuestLoginBtn');
 
-    // Eventos para abrir os modais
     if(openRsvpBtn) openRsvpBtn.onclick = () => rsvpModal.style.display = "block";
-    if(openGiftsBtn) openGiftsBtn.onclick = () => giftsModal.style.display = "block"; // Este pode ser removido se a lista só for visível para logados
     if(adminLoginBtn) adminLoginBtn.onclick = () => adminLoginModal.style.display = "block";
     if(guestLoginBtn) guestLoginBtn.onclick = () => guestLoginModal.style.display = "block";
-
-    // Eventos para fechar os modais
+    if(guestLoginBtn2) guestLoginBtn2.onclick = () => guestLoginModal.style.display = "block";
+    
     if(closeRsvpBtn) closeRsvpBtn.onclick = () => rsvpModal.style.display = "none";
-    if(closeGiftsBtn) closeGiftsBtn.onclick = () => giftsModal.style.display = "none";
     if(closeAdminLoginBtn) closeAdminLoginBtn.onclick = () => adminLoginModal.style.display = "none";
     if(closeGuestLoginBtn) closeGuestLoginBtn.onclick = () => guestLoginModal.style.display = "none";
 
     window.onclick = (event) => {
         if (event.target == rsvpModal) rsvpModal.style.display = "none";
-        if (event.target == giftsModal) giftsModal.style.display = "none";
         if (event.target == adminLoginModal) adminLoginModal.style.display = "none";
         if (event.target == guestLoginModal) guestLoginModal.style.display = "none";
     };
 
-    // --- Lógica do formulário de RSVP (ATUALIZADA) ---
+    // --- Máscaras de CPF ---
+    const applyCpfMask = (inputElement) => {
+        if (!inputElement) return;
+        inputElement.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
+        });
+    };
+    applyCpfMask(document.getElementById('cpf'));
+    applyCpfMask(document.getElementById('cpfLogin'));
+
+    // --- Lógica do formulário de RSVP ---
     const rsvpForm = document.getElementById('rsvpForm');
     if(rsvpForm) {
-        // ... (código da máscara de CPF continua igual) ...
         rsvpForm.addEventListener('submit', function(event) {
-            // ... (código de desabilitar botão continua igual) ...
-            const password = document.getElementById('passwordRsvp').value; // Pega a senha
-            formData.append('password', password); // Adiciona a senha aos dados
-            // ... (resto da lógica fetch, redirecionando para confirmacao.html) ...
+            event.preventDefault();
+            const submitButton = rsvpForm.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            
+            const fullName = document.getElementById('fullName').value;
+            const cpf = document.getElementById('cpf').value;
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('passwordRsvp').value;
+
+            const formData = new URLSearchParams();
+            formData.append('fullName', fullName);
+            formData.append('cpf', cpf);
+            formData.append('phone', phone);
+            formData.append('password', password);
+
+            fetch('/confirmar-presenca', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const eventDetails = {
+                        nome: fullName,
+                        data: '01 de Junho de 2026',
+                        horario: '16:00',
+                        local: 'Igreja Matriz São Pedro Apóstolo'
+                    };
+                    const queryString = new URLSearchParams(eventDetails).toString();
+                    window.location.href = `confirmacao.html?${queryString}`;
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro de comunicação:', error);
+                alert('Ocorreu um erro de comunicação.');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
+            });
         });
     }
 
-    // --- Lógica do formulário de login do admin (ATUALIZADA) ---
+    // --- Lógica do formulário de login do admin ---
     const adminLoginForm = document.getElementById('adminLoginForm');
     if(adminLoginForm) {
-        // ... (código do login do admin, redirecionando para admin.html) ...
+        const loginMessage = document.getElementById('loginMessage');
+        adminLoginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const username = adminLoginForm.querySelector('#username').value;
+            const password = adminLoginForm.querySelector('#password').value;
+            loginMessage.textContent = '';
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+                const result = await response.json();
+                if (result.success) {
+                    sessionStorage.setItem('authToken', result.token);
+                    window.location.href = 'admin.html';
+                } else {
+                    loginMessage.textContent = result.message;
+                }
+            } catch (error) {
+                loginMessage.textContent = 'Erro de comunicação.';
+            }
+        });
     }
-    
-    // [NOVO] Lógica do formulário de login do convidado
+
+    // --- Lógica do formulário de login do convidado ---
     const guestLoginForm = document.getElementById('guestLoginForm');
     if(guestLoginForm) {
-        const cpfLoginInput = document.getElementById('cpfLogin');
-        // ... (adicionar máscara de CPF para este campo também) ...
         const guestLoginMessage = document.getElementById('guestLoginMessage');
         guestLoginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            const cpf = cpfLoginInput.value;
-            const password = document.getElementById('passwordLogin').value;
-
+            const cpf = guestLoginForm.querySelector('#cpfLogin').value;
+            const password = guestLoginForm.querySelector('#passwordLogin').value;
+            guestLoginMessage.textContent = '';
             try {
                 const response = await fetch('/api/guest-login', {
                     method: 'POST',
