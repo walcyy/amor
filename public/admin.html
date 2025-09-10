@@ -10,22 +10,37 @@
     <div class="container admin-container">
         <header class="header">
             <h1>Painel dos Noivos</h1>
-            <h2>Lista de Presenças Confirmadas</h2>
         </header>
 
         <section class="guest-list-section">
+            <h2>Lista de Presenças Confirmadas</h2>
             <p>Total de convidados confirmados: <strong id="guestCount">0</strong></p>
             <table class="guest-table">
                 <thead>
                     <tr>
                         <th>Nome do Convidado</th>
                         <th>Telefone</th>
-                        <th>Presente Escolhido</th>
+                        <th>Presente Físico Escolhido</th>
                         <th>Data da Confirmação</th>
                     </tr>
                 </thead>
-                <tbody id="guestListBody">
-                    </tbody>
+                <tbody id="guestListBody"></tbody>
+            </table>
+        </section>
+
+        <section class="donations-list-section">
+            <h2>Contribuições Financeiras (PIX e Cotas)</h2>
+            <table class="guest-table">
+                <thead>
+                    <tr>
+                        <th>Convidado</th>
+                        <th>Tipo</th>
+                        <th>Valor (R$)</th>
+                        <th>Data</th>
+                        <th>Comprovante</th>
+                    </tr>
+                </thead>
+                <tbody id="donationsListBody"></tbody>
             </table>
         </section>
 

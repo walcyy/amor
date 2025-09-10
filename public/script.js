@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- LÓGICA DA CONTAGEM REGRESSIVA (se existir na página) ---
     const countdownEl = document.getElementById('countdown');
     if (countdownEl) {
         const weddingDate = new Date('2026-06-01T16:00:00').getTime();
-        const countdownInterval = setInterval(function() {
+        const countdownInterval = setInterval(() => {
             const now = new Date().getTime();
             const distance = weddingDate - now;
             if (distance < 0) {
@@ -12,18 +10,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 countdownEl.innerHTML = "<h2>O Grande Dia Chegou!</h2>";
                 return;
             }
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-            document.getElementById('days').innerText = String(days).padStart(2, '0');
-            document.getElementById('hours').innerText = String(hours).padStart(2, '0');
-            document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
-            document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+            const days = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            const minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            const seconds = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+            document.getElementById('days').innerText = days;
+            document.getElementById('hours').innerText = hours;
+            document.getElementById('minutes').innerText = minutes;
+            document.getElementById('seconds').innerText = seconds;
         }, 1000);
     }
-    
-    // --- LÓGICA DOS MODAIS ---
+
     const rsvpModal = document.getElementById('rsvpModal');
     const adminLoginModal = document.getElementById('adminLoginModal');
     const guestLoginModal = document.getElementById('guestLoginModal');
@@ -47,12 +44,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if(closeGuestLoginBtn) closeGuestLoginBtn.onclick = () => guestLoginModal.style.display = "none";
 
     window.onclick = (event) => {
-        if (event.target == rsvpModal) rsvpModal.style.display = "none";
-        if (event.target == adminLoginModal) adminLoginModal.style.display = "none";
-        if (event.target == guestLoginModal) guestLoginModal.style.display = "none";
+        if (event.target == rsvpModal || event.target == adminLoginModal || event.target == guestLoginModal) {
+            event.target.style.display = "none";
+        }
     };
 
-    // --- Máscaras de CPF ---
     const applyCpfMask = (inputElement) => {
         if (!inputElement) return;
         inputElement.addEventListener('input', (e) => {
@@ -66,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     applyCpfMask(document.getElementById('cpf'));
     applyCpfMask(document.getElementById('cpfLogin'));
 
-    // --- Lógica do formulário de RSVP ---
     const rsvpForm = document.getElementById('rsvpForm');
     if(rsvpForm) {
         rsvpForm.addEventListener('submit', function(event) {
@@ -77,20 +72,13 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.textContent = 'Enviando...';
             
             const fullName = document.getElementById('fullName').value;
-            const cpf = document.getElementById('cpf').value;
-            const phone = document.getElementById('phone').value;
-            const password = document.getElementById('passwordRsvp').value;
-
             const formData = new URLSearchParams();
             formData.append('fullName', fullName);
-            formData.append('cpf', cpf);
-            formData.append('phone', phone);
-            formData.append('password', password);
+            formData.append('cpf', document.getElementById('cpf').value);
+            formData.append('phone', document.getElementById('phone').value);
+            formData.append('password', document.getElementById('passwordRsvp').value);
 
-            fetch('/confirmar-presenca', {
-                method: 'POST',
-                body: formData
-            })
+            fetch('/confirmar-presenca', { method: 'POST', body: formData })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -100,8 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         horario: '16:00',
                         local: 'Igreja Matriz São Pedro Apóstolo'
                     };
-                    const queryString = new URLSearchParams(eventDetails).toString();
-                    window.location.href = `confirmacao.html?${queryString}`;
+                    window.location.href = `confirmacao.html?${new URLSearchParams(eventDetails).toString()}`;
                 } else {
                     alert(data.message);
                 }
@@ -117,7 +104,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Lógica do formulário de login do admin ---
     const adminLoginForm = document.getElementById('adminLoginForm');
     if(adminLoginForm) {
         const loginMessage = document.getElementById('loginMessage');
@@ -145,7 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- Lógica do formulário de login do convidado ---
     const guestLoginForm = document.getElementById('guestLoginForm');
     if(guestLoginForm) {
         const guestLoginMessage = document.getElementById('guestLoginMessage');

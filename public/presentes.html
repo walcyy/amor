@@ -11,6 +11,7 @@
         <header class="header">
             <h2 id="welcomeMessage">Bem-vindo(a)!</h2>
             <h1>Lista de Presentes</h1>
+            <p>Escolha um item da nossa lista ou contribua com um valor para o PIX ou nossa Lua de Mel.</p>
         </header>
 
         <section id="giftListContainer" class="gift-list-section">
@@ -20,6 +21,35 @@
             <p>© 2025 Steffany & Walci. Todos os direitos reservados.</p>
         </footer>
     </div>
+
+    <div id="contributionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeContributionBtn">×</span>
+            <h3 id="contributionTitle">Contribuir com Presente</h3>
+            <form id="contributionForm" enctype="multipart/form-data">
+                <div id="pixInfo" style="display: none;">
+                    <p><strong>Faça a transferência para a Chave PIX (E-mail):</strong></p>
+                    <p class="pix-key">steffany.walci@email.com</p>
+                    <p style="margin-top:15px;">Depois, preencha os campos abaixo e anexe o comprovante.</p>
+                </div>
+                <div id="honeymoonInfo" style="display: none;">
+                    <p>Sua contribuição ajudará a tornar nossa lua de mel inesquecível! O valor máximo por cota é de R$ 2000,00.</p>
+                </div>
+                
+                <input type="hidden" id="contributionType" name="tipo">
+                
+                <label for="contributionValue">Valor da Contribuição (R$):</label>
+                <input type="number" id="contributionValue" name="valor" step="0.01" min="1" max="2000" required>
+                
+                <label for="receiptFile">Anexar Comprovante:</label>
+                <input type="file" id="receiptFile" name="comprovante" accept="image/*,application/pdf" required>
+                
+                <button type="submit" class="btn">Enviar Contribuição</button>
+                 <p id="contributionMessage" class="login-message"></p>
+            </form>
+        </div>
+    </div>
+
     <script src="presentes.js"></script>
 </body>
 </html>

@@ -10,7 +10,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     document.getElementById('welcomeMessage').textContent = `Bem-vindo(a), ${guestName}!`;
     const giftListContainer = document.getElementById('giftListContainer');
-    
+    const contributionModal = document.getElementById('contributionModal');
+    const closeContributionBtn = document.getElementById('closeContributionBtn');
+    const contributionForm = document.getElementById('contributionForm');
+    const contributionMessage = document.getElementById('contributionMessage');
+
     const loadGifts = async () => {
         giftListContainer.innerHTML = '<p>Carregando presentes...</p>';
         try {
@@ -22,16 +26,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const itemDiv = document.createElement('div');
                     itemDiv.className = 'gift-list-item';
                     let content = `<h4>${presente.titulo}</h4><p>${presente.descricao}</p>`;
-                    if (presente.convidado_id) {
-                        itemDiv.classList.add('taken');
-                        let chosenBy = 'Já escolhido';
-                        if (presente.convidado_id == guestToken) {
-                            chosenBy = 'Escolhido por você!';
+                    
+                    if (presente.tipo === 'link') {
+                        if (presente.convidado_id) {
+                            itemDiv.classList.add('taken');
+                            content += '<button class="btn btn-select-gift" disabled>Já escolhido</button>';
+                        } else {
+                            content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
                         }
-                        content += `<button class="btn btn-select-gift" disabled>${chosenBy}</button>`;
-                    } else {
-                        content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
+                    } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
+                         content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}">${presente.texto_botao}</button>`;
                     }
+                    
                     itemDiv.innerHTML = content;
                     giftListContainer.appendChild(itemDiv);
                 });
@@ -42,31 +48,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     giftListContainer.addEventListener('click', async (event) => {
-        if (event.target.classList.contains('btn-select-gift') && !event.target.disabled) {
-            const presenteId = event.target.dataset.id;
-            if (!presenteId) return;
+        const target = event.target;
+        if (target.classList.contains('btn-contribute')) {
+            const tipo = target.dataset.type;
+            const title = target.dataset.title;
+            document.getElementById('contributionTitle').textContent = title;
+            document.getElementById('contributionType').value = tipo;
+            document.getElementById('pixInfo').style.display = (tipo === 'pix') ? 'block' : 'none';
+            document.getElementById('honeymoonInfo').style.display = (tipo === 'lua_de_mel') ? 'block' : 'none';
+            contributionModal.style.display = 'block';
+        }
 
+        if (target.classList.contains('btn-select-gift') && !target.disabled) {
+            const presenteId = target.dataset.id;
+            if (!presenteId) return;
             if (confirm('Você tem certeza que deseja escolher este presente? Esta ação não pode ser desfeita.')) {
                 try {
                     const response = await fetch('/api/selecionar-presente', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${guestToken}`
-                        },
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${guestToken}` },
                         body: JSON.stringify({ presenteId })
                     });
                     const result = await response.json();
                     alert(result.message);
-                    if (result.success) {
-                        loadGifts();
-                    }
+                    if (result.success) loadGifts();
                 } catch(e) {
                     alert('Erro de comunicação ao selecionar o presente.');
                 }
             }
         }
     });
+
+    if(closeContributionBtn) closeContributionBtn.onclick = () => contributionModal.style.display = 'none';
+
+    if(contributionForm) {
+        contributionForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const submitButton = contributionForm.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = "Enviando...";
+
+            const formData = new FormData(contributionForm);
+            
+            try {
+                const response = await fetch('/api/contribuir', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${guestToken}` },
+                    body: formData,
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (result.success) {
+                    contributionForm.reset();
+                    contributionModal.style.display = 'none';
+                    loadGifts();
+                }
+            } catch (error) {
+                alert('Erro de comunicação ao enviar contribuição.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Enviar Contribuição";
+            }
+        });
+    }
 
     loadGifts();
 });
