@@ -12,6 +12,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
+    const giftListContainer = document.getElementById('giftListContainer');
+    const contributionModal = document.getElementById('contributionModal');
+    const closeContributionBtn = document.getElementById('closeContributionBtn');
+    const contributionForm = document.getElementById('contributionForm');
+    const photoGalleryContainer = document.getElementById('photoGalleryContainer');
+    const giftSearchInput = document.getElementById('giftSearchInput');
+    let allGifts = {};
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -22,11 +29,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    const giftListContainer = document.getElementById('giftListContainer');
-    const contributionModal = document.getElementById('contributionModal');
-    const closeContributionBtn = document.getElementById('closeContributionBtn');
-    const contributionForm = document.getElementById('contributionForm');
-    const photoGalleryContainer = document.getElementById('photoGalleryContainer');
+    const renderGifts = (categories) => {
+        giftListContainer.innerHTML = '';
+        if (Object.keys(categories).length === 0) {
+            giftListContainer.innerHTML = '<p>Nenhum presente encontrado com esse nome.</p>';
+            return;
+        }
+        const accordion = document.createElement('div');
+        accordion.className = 'category-accordion';
+        for (const categoryName in categories) {
+            const details = document.createElement('details');
+            details.open = true;
+            const summary = document.createElement('summary');
+            summary.textContent = categoryName;
+            details.appendChild(summary);
+            const grid = document.createElement('div');
+            grid.className = 'gift-items-grid';
+            categories[categoryName].forEach(presente => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'gift-list-item';
+                let content = `<h4>${presente.titulo}</h4><p>${presente.descricao}</p>`;
+                if(presente.preco) {
+                    content += `<p><strong>Valor: R$ ${parseFloat(presente.preco).toFixed(2).replace('.', ',')}</strong></p>`;
+                }
+                if (presente.tipo === 'link') {
+                    if (presente.convidado_id) {
+                        itemDiv.classList.add('taken');
+                        content += `<button class="btn btn-select-gift" disabled>${presente.convidado_id == guestToken ? 'Escolhido por você!' : 'Já escolhido'}</button>`;
+                    } else {
+                        content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
+                    }
+                } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
+                     content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
+                }
+                itemDiv.innerHTML = content;
+                grid.appendChild(itemDiv);
+            });
+            details.appendChild(grid);
+            accordion.appendChild(details);
+        }
+        giftListContainer.appendChild(accordion);
+    };
 
     const loadGifts = async () => {
         giftListContainer.innerHTML = '<p>Carregando presentes...</p>';
@@ -34,46 +77,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch('/api/presentes');
             const result = await response.json();
             if (result.success) {
-                giftListContainer.innerHTML = '';
-                const categories = result.data;
-                const accordion = document.createElement('div');
-                accordion.className = 'category-accordion';
-                for (const categoryName in categories) {
-                    const details = document.createElement('details');
-                    details.open = true;
-                    const summary = document.createElement('summary');
-                    summary.textContent = categoryName;
-                    details.appendChild(summary);
-                    const grid = document.createElement('div');
-                    grid.className = 'gift-items-grid';
-                    categories[categoryName].forEach(presente => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'gift-list-item';
-                        let content = `<h4>${presente.titulo}</h4><p>${presente.descricao}</p>`;
-                        if(presente.preco) {
-                            content += `<p><strong>Valor: R$ ${parseFloat(presente.preco).toFixed(2).replace('.', ',')}</strong></p>`;
-                        }
-                        if (presente.tipo === 'link') {
-                            if (presente.convidado_id) {
-                                itemDiv.classList.add('taken');
-                                content += `<button class="btn btn-select-gift" disabled>${presente.convidado_id == guestToken ? 'Escolhido por você!' : 'Já escolhido'}</button>`;
-                            } else {
-                                content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
-                            }
-                        } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
-                             content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
-                        }
-                        itemDiv.innerHTML = content;
-                        grid.appendChild(itemDiv);
-                    });
-                    details.appendChild(grid);
-                    accordion.appendChild(details);
-                }
-                giftListContainer.appendChild(accordion);
+                allGifts = result.data;
+                renderGifts(allGifts);
             }
-        } catch(e) {
-            giftListContainer.innerHTML = '<p>Erro ao carregar presentes.</p>';
-        }
+        } catch(e) { giftListContainer.innerHTML = '<p>Erro ao carregar presentes.</p>'; }
     };
 
     const loadPhotos = async () => {
@@ -97,10 +104,27 @@ document.addEventListener('DOMContentLoaded', async () => {
                     photoGalleryContainer.appendChild(photoGrid);
                 }
             }
-        } catch (error) {
-            photoGalleryContainer.innerHTML = '<p>Erro ao carregar suas fotos.</p>';
-        }
+        } catch (error) { photoGalleryContainer.innerHTML = '<p>Erro ao carregar suas fotos.</p>'; }
     };
+    
+    giftSearchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        if (!searchTerm) {
+            renderGifts(allGifts);
+            return;
+        }
+        const filteredGifts = {};
+        for (const categoryName in allGifts) {
+            const matchingGifts = allGifts[categoryName].filter(presente => 
+                presente.titulo.toLowerCase().includes(searchTerm) ||
+                presente.descricao.toLowerCase().includes(searchTerm)
+            );
+            if (matchingGifts.length > 0) {
+                filteredGifts[categoryName] = matchingGifts;
+            }
+        }
+        renderGifts(filteredGifts);
+    });
 
     giftListContainer.addEventListener('click', async (event) => {
         const target = event.target;

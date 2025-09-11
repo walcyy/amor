@@ -13,6 +13,25 @@
             <h1>Painel dos Noivos</h1>
         </header>
 
+        <section class="dashboard-section">
+            <div class="stat-card">
+                <h4>Convidados Confirmados</h4>
+                <p id="statConvidados">0</p>
+            </div>
+            <div class="stat-card">
+                <h4>Presentes Físicos Ganhos</h4>
+                <p id="statPresentes">0</p>
+            </div>
+            <div class="stat-card">
+                <h4>Contribuições Recebidas</h4>
+                <p id="statQtdDoacoes">0</p>
+            </div>
+            <div class="stat-card">
+                <h4>Valor Total Arrecadado</h4>
+                <p>R$ <span id="statValorDoacoes">0,00</span></p>
+            </div>
+        </section>
+
         <section class="photo-management-section">
             <h2>Gerenciar Fotos dos Convidados</h2>
             <div class="form-container">
@@ -37,8 +56,10 @@
         </section>
 
         <section class="guest-list-section">
-            <h2>Lista de Presenças Confirmadas</h2>
-            <p>Total de convidados confirmados: <strong id="guestCount">0</strong></p>
+            <div class="section-header">
+                <h2>Lista de Presenças Confirmadas</h2>
+                <button id="exportBtn" class="btn btn-secondary">Exportar para Excel (CSV)</button>
+            </div>
             <table class="guest-table">
                 <thead>
                     <tr>

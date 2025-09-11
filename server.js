@@ -4,6 +4,7 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const { Parser } = require('json2csv');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,20 +14,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração do Multer para comprovantes
+// Configurações do Multer (comprovantes e fotos)
 const comprovanteStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'public/uploads/'),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
 });
 const uploadComprovante = multer({ storage: comprovanteStorage });
 
-// Configuração do Multer para as fotos do casamento
 const fotoStorage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'public/photos/'),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
 });
 const uploadFoto = multer({ storage: fotoStorage });
 
+// Configuração do Banco de Dados
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -37,7 +38,7 @@ const pool = mysql.createPool({
     queueLimit: 0
 }).promise();
 
-// Rota de RSVP com senha automática
+// --- ROTAS DE CONVIDADOS ---
 app.post('/confirmar-presenca', async (req, res) => {
     const { fullName, cpf, phone } = req.body;
     if (!fullName || !cpf || !phone) {
@@ -59,7 +60,6 @@ app.post('/confirmar-presenca', async (req, res) => {
     }
 });
 
-// Rota para login do convidado
 app.post('/api/guest-login', async (req, res) => {
     const { cpf, password } = req.body;
     if (!cpf || !password) {
@@ -80,7 +80,16 @@ app.post('/api/guest-login', async (req, res) => {
     }
 });
 
-// Rota da Lista de Presentes agrupada por categoria
+const checkGuestAuth = (req, res, next) => {
+    const guestId = req.headers.authorization?.split(' ')[1];
+    if (guestId && !isNaN(guestId)) {
+        req.guestId = guestId;
+        next();
+    } else {
+        res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
+    }
+};
+
 app.get('/api/presentes', async (req, res) => {
     try {
         const sql = "SELECT id, titulo, descricao, tipo, categoria, preco, imagem_url, convidado_id, texto_botao, chave_pix FROM presentes ORDER BY categoria, preco";
@@ -98,18 +107,6 @@ app.get('/api/presentes', async (req, res) => {
     }
 });
 
-// Middleware para proteger rotas de convidados
-const checkGuestAuth = (req, res, next) => {
-    const guestId = req.headers.authorization?.split(' ')[1];
-    if (guestId && !isNaN(guestId)) {
-        req.guestId = guestId;
-        next();
-    } else {
-        res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
-    }
-};
-
-// Rota para um convidado selecionar um presente FÍSICO
 app.post('/api/selecionar-presente', checkGuestAuth, async (req, res) => {
     const { presenteId } = req.body;
     const { guestId } = req;
@@ -131,7 +128,6 @@ app.post('/api/selecionar-presente', checkGuestAuth, async (req, res) => {
     }
 });
 
-// Rota para receber contribuições FINANCEIRAS com comprovante
 app.post('/api/contribuir', checkGuestAuth, uploadComprovante.single('comprovante'), async (req, res) => {
     const { tipo, valor } = req.body;
     const { guestId } = req;
@@ -149,7 +145,25 @@ app.post('/api/contribuir', checkGuestAuth, uploadComprovante.single('comprovant
     }
 });
 
-// Middleware de autenticação do admin
+app.get('/api/minhas-fotos', checkGuestAuth, async (req, res) => {
+    const { guestId } = req;
+    try {
+        const sql = `
+            SELECT f.imagem_url, f.descricao 
+            FROM fotos f
+            JOIN fotos_convidados fc ON f.id = fc.foto_id
+            WHERE fc.convidado_id = ?
+            ORDER BY f.data_upload DESC
+        `;
+        const [fotos] = await pool.query(sql, [guestId]);
+        res.json({ success: true, data: fotos });
+    } catch (error) {
+        console.error('Erro ao buscar fotos do convidado:', error);
+        res.status(500).json({ success: false, message: 'Erro ao buscar suas fotos.' });
+    }
+});
+
+// --- ROTAS DE ADMIN ---
 const checkAuth = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (token === 'secret-token-123') {
@@ -159,7 +173,6 @@ const checkAuth = (req, res, next) => {
     }
 };
     
-// Rota de login do admin
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
@@ -169,7 +182,6 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// Rota da lista de convidados para noivos
 app.get('/api/convidados', checkAuth, async (req, res) => {
     try {
         const sql = `
@@ -186,7 +198,6 @@ app.get('/api/convidados', checkAuth, async (req, res) => {
     }
 });
 
-// Rota para noivos verem as doações
 app.get('/api/doacoes', checkAuth, async (req, res) => {
     try {
         const sql = `
@@ -203,7 +214,6 @@ app.get('/api/doacoes', checkAuth, async (req, res) => {
     }
 });
 
-// Rota para o admin buscar a lista de nomes de convidados para etiquetar
 app.get('/api/convidados-nomes', checkAuth, async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT id, nome FROM convidados ORDER BY nome ASC");
@@ -213,7 +223,6 @@ app.get('/api/convidados-nomes', checkAuth, async (req, res) => {
     }
 });
 
-// Rota para o admin fazer upload de uma foto
 app.post('/api/fotos/upload', checkAuth, uploadFoto.single('foto'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado.' });
@@ -229,7 +238,6 @@ app.post('/api/fotos/upload', checkAuth, uploadFoto.single('foto'), async (req, 
     }
 });
 
-// Rota para o admin etiquetar uma foto com convidados
 app.post('/api/fotos/etiquetar', checkAuth, async (req, res) => {
     const { fotoId, convidadosIds } = req.body;
     if (!fotoId || !convidadosIds || !Array.isArray(convidadosIds) || convidadosIds.length === 0) {
@@ -245,22 +253,41 @@ app.post('/api/fotos/etiquetar', checkAuth, async (req, res) => {
     }
 });
 
-// Rota para um convidado logado buscar suas fotos
-app.get('/api/minhas-fotos', checkGuestAuth, async (req, res) => {
-    const { guestId } = req;
+app.get('/api/dashboard-stats', checkAuth, async (req, res) => {
     try {
-        const sql = `
-            SELECT f.imagem_url, f.descricao 
-            FROM fotos f
-            JOIN fotos_convidados fc ON f.id = fc.foto_id
-            WHERE fc.convidado_id = ?
-            ORDER BY f.data_upload DESC
-        `;
-        const [fotos] = await pool.query(sql, [guestId]);
-        res.json({ success: true, data: fotos });
+        const [guestResult] = await pool.query("SELECT COUNT(*) as totalConvidados FROM convidados");
+        const [giftsResult] = await pool.query("SELECT COUNT(*) as presentesEscolhidos FROM presentes WHERE convidado_id IS NOT NULL AND tipo = 'link'");
+        const [donationsResult] = await pool.query("SELECT SUM(valor) as totalDoacoes, COUNT(*) as qtdDoacoes FROM doacoes");
+        const stats = {
+            totalConvidados: guestResult[0].totalConvidados || 0,
+            presentesEscolhidos: giftsResult[0].presentesEscolhidos || 0,
+            totalDoacoes: donationsResult[0].totalDoacoes || 0,
+            qtdDoacoes: donationsResult[0].qtdDoacoes || 0,
+        };
+        res.json({ success: true, data: stats });
     } catch (error) {
-        console.error('Erro ao buscar fotos do convidado:', error);
-        res.status(500).json({ success: false, message: 'Erro ao buscar suas fotos.' });
+        console.error('Erro ao buscar estatísticas:', error);
+        res.status(500).json({ success: false, message: 'Erro ao buscar estatísticas.' });
+    }
+});
+
+app.get('/api/convidados/export', checkAuth, async (req, res) => {
+    try {
+        const [convidados] = await pool.query("SELECT nome, cpf, telefone, DATE_FORMAT(data_confirmacao, '%d/%m/%Y %H:%i') as data_confirmacao FROM convidados ORDER BY nome ASC");
+        const fields = [
+            { label: 'Nome Completo', value: 'nome' },
+            { label: 'CPF', value: 'cpf' },
+            { label: 'Telefone', value: 'telefone' },
+            { label: 'Data da Confirmação', value: 'data_confirmacao' }
+        ];
+        const json2csvParser = new Parser({ fields, delimiter: ';' });
+        const csv = json2csvParser.parse(convidados);
+        res.header('Content-Type', 'text/csv');
+        res.attachment('lista_de_convidados.csv');
+        res.send(csv);
+    } catch (error) {
+        console.error('Erro ao exportar convidados:', error);
+        res.status(500).json({ success: false, message: 'Erro ao exportar lista.' });
     }
 });
 

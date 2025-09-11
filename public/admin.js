@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const token = sessionStorage.getItem('authToken');
     if (!token) {
+        alert('Acesso não autorizado. Por favor, faça o login.');
         window.location.href = 'index.html';
         return;
     }
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const guestListBody = document.getElementById('guestListBody');
     const guestCount = document.getElementById('guestCount');
     const donationsListBody = document.getElementById('donationsListBody');
+    const exportBtn = document.getElementById('exportBtn');
     const photoUploadForm = document.getElementById('photoUploadForm');
     const photoTagForm = document.getElementById('photoTagForm');
     const photoFile = document.getElementById('photoFile');
@@ -25,6 +27,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         return result;
     };
 
+    const loadDashboardStats = async () => {
+        try {
+            const result = await fetchWithAuth('/api/dashboard-stats');
+            const stats = result.data;
+            document.getElementById('statConvidados').textContent = stats.totalConvidados;
+            document.getElementById('statPresentes').textContent = stats.presentesEscolhidos;
+            document.getElementById('statQtdDoacoes').textContent = stats.qtdDoacoes;
+            document.getElementById('statValorDoacoes').textContent = parseFloat(stats.totalDoacoes).toFixed(2).replace('.', ',');
+        } catch (error) { console.error('Erro ao carregar estatísticas:', error); }
+    };
+
     const loadConfirmedGuests = async () => {
         try {
             const result = await fetchWithAuth('/api/convidados');
@@ -34,7 +47,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const row = document.createElement('tr');
                 const dataConfirmacao = new Date(convidado.data_confirmacao).toLocaleString('pt-BR');
                 const presente = convidado.presente_escolhido || '—';
-                row.innerHTML = `<td>${convidado.nome}</td><td>${convidado.telefone}</td><td>${presente}</td><td>${dataConfirmacao}</td>`;
+                row.innerHTML = `
+                    <td data-label="Nome">${convidado.nome}</td>
+                    <td data-label="Telefone">${convidado.telefone}</td>
+                    <td data-label="Presente Físico">${presente}</td>
+                    <td data-label="Data Confirmação">${dataConfirmacao}</td>
+                `;
                 guestListBody.appendChild(row);
             });
         } catch (error) {
@@ -53,12 +71,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const dataFormatada = new Date(doacao.data_criacao).toLocaleString('pt-BR');
                 const valorFormatado = parseFloat(doacao.valor).toFixed(2).replace('.', ',');
                 const tipoFormatado = doacao.tipo === 'pix' ? 'PIX' : 'Cota Lua de Mel';
-                row.innerHTML = `<td>${doacao.convidado_nome}</td><td>${tipoFormatado}</td><td>R$ ${valorFormatado}</td><td>${dataFormatada}</td><td><a href="${doacao.comprovante_url}" target="_blank" class="btn btn-secondary">Ver</a></td>`;
+                row.innerHTML = `
+                    <td data-label="Convidado">${doacao.convidado_nome}</td>
+                    <td data-label="Tipo">${tipoFormatado}</td>
+                    <td data-label="Valor (R$)">R$ ${valorFormatado}</td>
+                    <td data-label="Data">${dataFormatada}</td>
+                    <td data-label="Comprovante"><a href="${doacao.comprovante_url}" target="_blank" class="btn btn-secondary">Ver</a></td>
+                `;
                 donationsListBody.appendChild(row);
             });
-        } catch (error) {
-            console.error('Erro ao buscar doações:', error);
-        }
+        } catch (error) { console.error('Erro ao buscar doações:', error); }
     };
 
     const loadGuestsForTagging = async () => {
@@ -71,9 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 option.textContent = guest.nome;
                 guestTagsSelect.appendChild(option);
             });
-        } catch (error) {
-            console.error('Erro ao carregar lista de convidados para etiquetar', error);
-        }
+        } catch (error) { console.error('Erro ao carregar lista de convidados para etiquetar', error); }
     };
 
     photoUploadForm.addEventListener('submit', async (e) => {
@@ -95,9 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 uploadedPhotoPreview.src = result.url;
                 photoIdInput.value = result.fotoId;
             }
-        } catch (error) {
-            alert('Erro ao enviar foto.');
-        }
+        } catch (error) { alert('Erro ao enviar foto.'); }
     });
 
     photoTagForm.addEventListener('submit', async (e) => {
@@ -118,11 +136,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 photoTagForm.style.display = 'none';
                 photoUploadForm.style.display = 'block';
             }
-        } catch (error) {
-            alert('Erro ao etiquetar foto.');
-        }
+        } catch (error) { alert('Erro ao etiquetar foto.'); }
     });
 
+    exportBtn.addEventListener('click', async () => {
+        try {
+            const response = await fetch('/api/convidados/export', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!response.ok) throw new Error('Falha ao gerar o arquivo.');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = 'lista_de_convidados.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (error) { alert(error.message); }
+    });
+
+    loadDashboardStats();
     loadConfirmedGuests();
     loadDonations();
     loadGuestsForTagging();

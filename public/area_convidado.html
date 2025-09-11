@@ -20,6 +20,9 @@
         </div>
 
         <div id="gifts" class="tab-content active">
+            <div class="search-container">
+                <input type="text" id="giftSearchInput" placeholder="🔎 Buscar presente pelo nome...">
+            </div>
             <section id="giftListContainer" class="gift-list-section"></section>
         </div>
         
@@ -28,7 +31,7 @@
         </div>
 
         <footer class="footer">
-            <p>© 2025 Steffany & Walci. Todos os direitos reservados.</p>
+             <p>© 2025 Steffany & Walci. Todos os direitos reservados.</p>
         </footer>
     </div>
 
@@ -39,17 +42,17 @@
             <form id="contributionForm" enctype="multipart/form-data">
                 <div id="pixInfo" style="display: none;">
                     <p><strong>Faça a transferência para a Chave PIX (E-mail):</strong></p>
-                    <p class="pix-key">steffany.walci@email.com</p>
+                    <p class="pix-key"></p>
                     <p class="modal-subtitle">Depois, preencha os campos abaixo e anexe o comprovante.</p>
                 </div>
                 <div id="honeymoonInfo" style="display: none;">
-                    <p class="modal-subtitle">Sua contribuição ajudará a tornar nossa lua de mel inesquecível! O valor máximo por cota é de R$ 2000,00.</p>
+                    <p class="modal-subtitle">Sua contribuição ajudará a tornar nossa lua de mel inesquecível!</p>
                 </div>
                 
                 <input type="hidden" id="contributionType" name="tipo">
                 
                 <label for="contributionValue">Valor da Contribuição (R$):</label>
-                <input type="number" id="contributionValue" name="valor" step="0.01" min="1" max="2000" required>
+                <input type="number" id="contributionValue" name="valor" step="0.01" min="1" required>
                 
                 <label for="receiptFile">Anexar Comprovante (Obrigatório):</label>
                 <input type="file" id="receiptFile" name="comprovante" accept="image/*,application/pdf" required>
