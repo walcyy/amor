@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Convidado - Steffany & Walci</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container admin-container">
+        <header class="header">
+            <a href="index.html" class="btn btn-secondary btn-back">Voltar ao Convite</a>
+            <h2 id="welcomeMessage">Bem-vindo(a)!</h2>
+            <h1>Área do Convidado</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-link active" data-tab="gifts">Lista de Presentes</button>
+            <button class="tab-link" data-tab="photos">Nossas Fotos</button>
+        </div>
+
+        <div id="gifts" class="tab-content active">
+            <section id="giftListContainer" class="gift-list-section"></section>
+        </div>
+        
+        <div id="photos" class="tab-content">
+            <section id="photoGalleryContainer" class="photo-gallery-section"></section>
+        </div>
+
+        <footer class="footer">
+            <p>© 2025 Steffany & Walci. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <div id="contributionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeContributionBtn">×</span>
+            <h3 id="contributionTitle">Contribuir com Presente</h3>
+            <form id="contributionForm" enctype="multipart/form-data">
+                <div id="pixInfo" style="display: none;">
+                    <p><strong>Faça a transferência para a Chave PIX (E-mail):</strong></p>
+                    <p class="pix-key">steffany.walci@email.com</p>
+                    <p class="modal-subtitle">Depois, preencha os campos abaixo e anexe o comprovante.</p>
+                </div>
+                <div id="honeymoonInfo" style="display: none;">
+                    <p class="modal-subtitle">Sua contribuição ajudará a tornar nossa lua de mel inesquecível! O valor máximo por cota é de R$ 2000,00.</p>
+                </div>
+                
+                <input type="hidden" id="contributionType" name="tipo">
+                
+                <label for="contributionValue">Valor da Contribuição (R$):</label>
+                <input type="number" id="contributionValue" name="valor" step="0.01" min="1" max="2000" required>
+                
+                <label for="receiptFile">Anexar Comprovante (Obrigatório):</label>
+                <input type="file" id="receiptFile" name="comprovante" accept="image/*,application/pdf" required>
+                
+                <button type="submit" class="btn">Enviar Registro</button>
+                 <p id="contributionMessage" class="login-message"></p>
+            </form>
+        </div>
+    </div>
+    <script src="area_convidado.js"></script>
+</body>
+</html>

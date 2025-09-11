@@ -13,16 +13,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração do Multer para upload de comprovantes
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'));
-    }
+// Configuração do Multer para comprovantes
+const comprovanteStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'public/uploads/'),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
 });
-const upload = multer({ storage: storage });
+const uploadComprovante = multer({ storage: comprovanteStorage });
+
+// Configuração do Multer para as fotos do casamento
+const fotoStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, 'public/photos/'),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'))
+});
+const uploadFoto = multer({ storage: fotoStorage });
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
@@ -129,7 +132,7 @@ app.post('/api/selecionar-presente', checkGuestAuth, async (req, res) => {
 });
 
 // Rota para receber contribuições FINANCEIRAS com comprovante
-app.post('/api/contribuir', checkGuestAuth, upload.single('comprovante'), async (req, res) => {
+app.post('/api/contribuir', checkGuestAuth, uploadComprovante.single('comprovante'), async (req, res) => {
     const { tipo, valor } = req.body;
     const { guestId } = req;
     const comprovanteUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -146,16 +149,6 @@ app.post('/api/contribuir', checkGuestAuth, upload.single('comprovante'), async 
     }
 });
 
-// Rota de login do admin
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
-    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
-        res.status(200).json({ success: true, token: 'secret-token-123' });
-    } else {
-        res.status(401).json({ success: false, message: 'Usuário ou senha inválidos.' });
-    }
-});
-
 // Middleware de autenticação do admin
 const checkAuth = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -165,6 +158,16 @@ const checkAuth = (req, res, next) => {
         res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
     }
 };
+    
+// Rota de login do admin
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === process.env.ADMIN_USER && password === process.env.ADMIN_PASSWORD) {
+        res.status(200).json({ success: true, token: 'secret-token-123' });
+    } else {
+        res.status(401).json({ success: false, message: 'Usuário ou senha inválidos.' });
+    }
+});
 
 // Rota da lista de convidados para noivos
 app.get('/api/convidados', checkAuth, async (req, res) => {
@@ -197,6 +200,67 @@ app.get('/api/doacoes', checkAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro ao buscar doações:', error);
         res.status(500).json({ success: false, message: 'Erro ao buscar a lista de doações.' });
+    }
+});
+
+// Rota para o admin buscar a lista de nomes de convidados para etiquetar
+app.get('/api/convidados-nomes', checkAuth, async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT id, nome FROM convidados ORDER BY nome ASC");
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro ao buscar nomes dos convidados.' });
+    }
+});
+
+// Rota para o admin fazer upload de uma foto
+app.post('/api/fotos/upload', checkAuth, uploadFoto.single('foto'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado.' });
+    }
+    try {
+        const imagemUrl = `/photos/${req.file.filename}`;
+        const { descricao } = req.body;
+        const [result] = await pool.query("INSERT INTO fotos (imagem_url, descricao) VALUES (?, ?)", [imagemUrl, descricao]);
+        res.json({ success: true, message: 'Foto enviada com sucesso!', fotoId: result.insertId, url: imagemUrl });
+    } catch (error) {
+        console.error('Erro no upload da foto:', error);
+        res.status(500).json({ success: false, message: 'Erro ao salvar a foto.' });
+    }
+});
+
+// Rota para o admin etiquetar uma foto com convidados
+app.post('/api/fotos/etiquetar', checkAuth, async (req, res) => {
+    const { fotoId, convidadosIds } = req.body;
+    if (!fotoId || !convidadosIds || !Array.isArray(convidadosIds) || convidadosIds.length === 0) {
+        return res.status(400).json({ success: false, message: 'Dados inválidos.' });
+    }
+    try {
+        const values = convidadosIds.map(convidadoId => [fotoId, convidadoId]);
+        await pool.query("INSERT INTO fotos_convidados (foto_id, convidado_id) VALUES ?", [values]);
+        res.json({ success: true, message: 'Convidados etiquetados com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao etiquetar foto:', error);
+        res.status(500).json({ success: false, message: 'Erro ao etiquetar a foto.' });
+    }
+});
+
+// Rota para um convidado logado buscar suas fotos
+app.get('/api/minhas-fotos', checkGuestAuth, async (req, res) => {
+    const { guestId } = req;
+    try {
+        const sql = `
+            SELECT f.imagem_url, f.descricao 
+            FROM fotos f
+            JOIN fotos_convidados fc ON f.id = fc.foto_id
+            WHERE fc.convidado_id = ?
+            ORDER BY f.data_upload DESC
+        `;
+        const [fotos] = await pool.query(sql, [guestId]);
+        res.json({ success: true, data: fotos });
+    } catch (error) {
+        console.error('Erro ao buscar fotos do convidado:', error);
+        res.status(500).json({ success: false, message: 'Erro ao buscar suas fotos.' });
     }
 });
 

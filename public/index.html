@@ -72,13 +72,13 @@
             <span class="close-btn" id="closeRsvpBtn">×</span>
             <h3>Confirmar Presença</h3>
             <p class="modal-subtitle">Sua senha para a "Área do Convidado" será os 4 últimos dígitos do seu CPF.</p>
-            <form id="rsvpForm">
+            <form id="rsvpForm" novalidate>
                 <label for="fullName">Nome Completo:</label>
                 <input type="text" id="fullName" name="fullName" required>
                 <label for="cpf">CPF:</label>
                 <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required>
-                <label for="phone">Telefone (com DDD):</label>
-                <input type="tel" id="phone" name="phone" placeholder="(XX) XXXXX-XXXX" required>
+                <label for="phone">Celular (com DDD):</label>
+                <input type="tel" id="phone" name="phone" placeholder="(XX) 9XXXX-XXXX" required>
                 <button type="submit" class="btn">Enviar Confirmação</button>
             </form>
         </div>

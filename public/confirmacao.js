@@ -10,13 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const eventTimeEl = document.getElementById('eventTime');
     const eventLocationEl = document.getElementById('eventLocation');
 
-    if (guestNameEl) {
-        if (nome) {
-            guestNameEl.textContent = nome;
-        } else {
-            guestNameEl.textContent = 'Convidado(a)';
-        }
-    }
+    if (guestNameEl && nome) guestNameEl.textContent = nome;
     if (eventDateEl && data) eventDateEl.textContent = data;
     if (eventTimeEl && horario) eventTimeEl.textContent = horario;
     if (eventLocationEl && local) eventLocationEl.textContent = local;

@@ -65,19 +65,45 @@ document.addEventListener('DOMContentLoaded', function() {
     applyCpfMask(document.getElementById('cpf'));
     applyCpfMask(document.getElementById('cpfLogin'));
 
+    const applyPhoneMask = (inputElement) => {
+        if (!inputElement) return;
+        inputElement.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value.slice(0, 15);
+        });
+    };
+    applyPhoneMask(document.getElementById('phone'));
+
     const rsvpForm = document.getElementById('rsvpForm');
     if(rsvpForm) {
         rsvpForm.addEventListener('submit', function(event) {
             event.preventDefault();
+
+            const fullName = document.getElementById('fullName').value;
+            const cpf = document.getElementById('cpf').value;
+            const phone = document.getElementById('phone').value;
+
+            if (cpf.length !== 14) {
+                alert('CPF inválido. Por favor, preencha todos os 11 dígitos.');
+                return;
+            }
+            const phoneDigits = phone.replace(/\D/g, '');
+            if (phoneDigits.length !== 11) {
+                alert('Número de celular inválido. Por favor, inclua o DDD e os 9 dígitos.');
+                return;
+            }
+            if (phoneDigits.charAt(2) !== '9') {
+                alert('Número de celular inválido. O primeiro dígito após o DDD deve ser 9.');
+                return;
+            }
+
             const submitButton = rsvpForm.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.textContent;
             submitButton.disabled = true;
             submitButton.textContent = 'Enviando...';
             
-            const fullName = document.getElementById('fullName').value;
-            const cpf = document.getElementById('cpf').value;
-            const phone = document.getElementById('phone').value;
-
             const formData = new URLSearchParams();
             formData.append('fullName', fullName);
             formData.append('cpf', cpf);
@@ -154,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (result.success) {
                     sessionStorage.setItem('guestToken', result.token);
                     sessionStorage.setItem('guestName', result.nome);
-                    window.location.href = 'presentes.html';
+                    window.location.href = 'area_convidado.html';
                 } else {
                     guestLoginMessage.textContent = result.message;
                 }

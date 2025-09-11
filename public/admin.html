@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Convidados - Steffany & Walci</title>
+    <title>Painel dos Noivos - Steffany & Walci</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,6 +12,29 @@
             <a href="index.html" class="btn btn-secondary btn-back">Voltar ao Convite</a>
             <h1>Painel dos Noivos</h1>
         </header>
+
+        <section class="photo-management-section">
+            <h2>Gerenciar Fotos dos Convidados</h2>
+            <div class="form-container">
+                <form id="photoUploadForm">
+                    <h3>Passo 1: Enviar Nova Foto</h3>
+                    <label for="photoFile">Arquivo da Foto:</label>
+                    <input type="file" id="photoFile" name="foto" accept="image/*" required>
+                    <label for="photoDescription">Descrição (opcional):</label>
+                    <input type="text" id="photoDescription" name="descricao" placeholder="Ex: Foto na mesa do bolo">
+                    <button type="submit" class="btn">Enviar Foto</button>
+                </form>
+                <form id="photoTagForm" style="display: none;">
+                    <h3>Passo 2: Etiquetar Convidados na Foto</h3>
+                    <img id="uploadedPhotoPreview" src="" alt="Preview da Foto" />
+                    <input type="hidden" id="photoId" name="fotoId">
+                    <label for="guestTags">Selecione os convidados presentes na foto:</label>
+                    <select id="guestTags" name="convidadosIds" multiple required></select>
+                    <p class="modal-subtitle">Segure Ctrl (ou Cmd no Mac) para selecionar mais de um.</p>
+                    <button type="submit" class="btn">Salvar Etiquetas</button>
+                </form>
+            </div>
+        </section>
 
         <section class="guest-list-section">
             <h2>Lista de Presenças Confirmadas</h2>

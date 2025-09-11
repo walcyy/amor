@@ -3,16 +3,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     const guestName = sessionStorage.getItem('guestName');
 
     if (!guestToken) {
-        alert('Você precisa fazer login para ver a lista de presentes.');
+        alert('Você precisa fazer login para ver esta página.');
         window.location.href = 'index.html';
         return;
     }
     
     document.getElementById('welcomeMessage').textContent = `Bem-vindo(a), ${guestName}!`;
+    
+    const tabs = document.querySelectorAll('.tab-link');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(item => item.classList.remove('active'));
+            tab.classList.add('active');
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
+
     const giftListContainer = document.getElementById('giftListContainer');
     const contributionModal = document.getElementById('contributionModal');
     const closeContributionBtn = document.getElementById('closeContributionBtn');
     const contributionForm = document.getElementById('contributionForm');
+    const photoGalleryContainer = document.getElementById('photoGalleryContainer');
 
     const loadGifts = async () => {
         giftListContainer.innerHTML = '<p>Carregando presentes...</p>';
@@ -24,7 +38,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const categories = result.data;
                 const accordion = document.createElement('div');
                 accordion.className = 'category-accordion';
-
                 for (const categoryName in categories) {
                     const details = document.createElement('details');
                     details.open = true;
@@ -43,12 +56,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                         if (presente.tipo === 'link') {
                             if (presente.convidado_id) {
                                 itemDiv.classList.add('taken');
-                                content += '<button class="btn btn-select-gift" disabled>Já escolhido</button>';
+                                content += `<button class="btn btn-select-gift" disabled>${presente.convidado_id == guestToken ? 'Escolhido por você!' : 'Já escolhido'}</button>`;
                             } else {
                                 content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
                             }
                         } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
-                             content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}">${presente.texto_botao}</button>`;
+                             content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
                         }
                         itemDiv.innerHTML = content;
                         grid.appendChild(itemDiv);
@@ -63,14 +76,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 
+    const loadPhotos = async () => {
+        photoGalleryContainer.innerHTML = '<p>Carregando suas fotos...</p>';
+        try {
+            const response = await fetch('/api/minhas-fotos', { headers: { 'Authorization': `Bearer ${guestToken}` } });
+            const result = await response.json();
+            if(result.success) {
+                photoGalleryContainer.innerHTML = '';
+                if (result.data.length === 0) {
+                    photoGalleryContainer.innerHTML = '<p>Assim que as fotos do casamento ficarem prontas, as que você aparece estarão aqui!</p>';
+                } else {
+                    const photoGrid = document.createElement('div');
+                    photoGrid.className = 'photo-grid';
+                    result.data.forEach(foto => {
+                        const photoCard = document.createElement('div');
+                        photoCard.className = 'photo-card';
+                        photoCard.innerHTML = `<a href="${foto.imagem_url}" target="_blank"><img src="${foto.imagem_url}" alt="${foto.descricao || 'Foto do casamento'}"></a><p>${foto.descricao || ''}</p>`;
+                        photoGrid.appendChild(photoCard);
+                    });
+                    photoGalleryContainer.appendChild(photoGrid);
+                }
+            }
+        } catch (error) {
+            photoGalleryContainer.innerHTML = '<p>Erro ao carregar suas fotos.</p>';
+        }
+    };
+
     giftListContainer.addEventListener('click', async (event) => {
         const target = event.target;
         if (target.classList.contains('btn-contribute')) {
             const tipo = target.dataset.type;
             const title = target.dataset.title;
+            const pixKey = target.dataset.pixkey;
             document.getElementById('contributionTitle').textContent = title;
             document.getElementById('contributionType').value = tipo;
-            document.getElementById('pixInfo').style.display = (tipo === 'pix') ? 'block' : 'none';
+            const pixInfoDiv = document.getElementById('pixInfo');
+            if (pixInfoDiv.querySelector('.pix-key')) {
+                 pixInfoDiv.querySelector('.pix-key').textContent = pixKey;
+            }
+            pixInfoDiv.style.display = (tipo === 'pix') ? 'block' : 'none';
             document.getElementById('honeymoonInfo').style.display = (tipo === 'lua_de_mel') ? 'block' : 'none';
             contributionModal.style.display = 'block';
         }
@@ -124,5 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
+    
     loadGifts();
+    loadPhotos();
 });
