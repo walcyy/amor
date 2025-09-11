@@ -1,161 +1,60 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const countdownEl = document.getElementById('countdown');
-    if (countdownEl) {
-        const weddingDate = new Date('2026-06-01T16:00:00').getTime();
-        const countdownInterval = setInterval(() => {
-            const now = new Date().getTime();
-            const distance = weddingDate - now;
-            if (distance < 0) {
-                clearInterval(countdownInterval);
-                countdownEl.innerHTML = "<h2>O Grande Dia Chegou!</h2>";
-                return;
-            }
-            const days = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
-            const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
-            const minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-            const seconds = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
-            document.getElementById('days').innerText = days;
-            document.getElementById('hours').innerText = hours;
-            document.getElementById('minutes').innerText = minutes;
-            document.getElementById('seconds').innerText = seconds;
-        }, 1000);
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = sessionStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = 'index.html';
+        return;
     }
 
-    const rsvpModal = document.getElementById('rsvpModal');
-    const adminLoginModal = document.getElementById('adminLoginModal');
-    const guestLoginModal = document.getElementById('guestLoginModal');
-    
-    const openRsvpBtn = document.getElementById('openRsvpBtn');
-    const adminLoginBtn = document.getElementById('adminLoginBtn');
-    const guestLoginBtn = document.getElementById('guestLoginBtn');
-    const guestLoginBtn2 = document.getElementById('guestLoginBtn2');
-    
-    const closeRsvpBtn = document.getElementById('closeRsvpBtn');
-    const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
-    const closeGuestLoginBtn = document.getElementById('closeGuestLoginBtn');
+    const guestListBody = document.getElementById('guestListBody');
+    const guestCount = document.getElementById('guestCount');
+    const donationsListBody = document.getElementById('donationsListBody');
 
-    if(openRsvpBtn) openRsvpBtn.onclick = () => rsvpModal.style.display = "block";
-    if(adminLoginBtn) adminLoginBtn.onclick = () => adminLoginModal.style.display = "block";
-    if(guestLoginBtn) guestLoginBtn.onclick = () => guestLoginModal.style.display = "block";
-    if(guestLoginBtn2) guestLoginBtn2.onclick = () => guestLoginModal.style.display = "block";
+    const loadConfirmedGuests = async () => {
+        try {
+            const response = await fetch('/api/convidados', { headers: { 'Authorization': `Bearer ${token}` } });
+            const result = await response.json();
+            if (result.success) {
+                guestCount.textContent = result.data.length;
+                guestListBody.innerHTML = '';
+                result.data.forEach(convidado => {
+                    const row = document.createElement('tr');
+                    const dataConfirmacao = new Date(convidado.data_confirmacao).toLocaleString('pt-BR');
+                    const presente = convidado.presente_escolhido || '—';
+                    row.innerHTML = `<td>${convidado.nome}</td><td>${convidado.telefone}</td><td>${presente}</td><td>${dataConfirmacao}</td>`;
+                    guestListBody.appendChild(row);
+                });
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            alert(error.message || 'Erro ao carregar a lista de convidados.');
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+        }
+    };
     
-    if(closeRsvpBtn) closeRsvpBtn.onclick = () => rsvpModal.style.display = "none";
-    if(closeAdminLoginBtn) closeAdminLoginBtn.onclick = () => adminLoginModal.style.display = "none";
-    if(closeGuestLoginBtn) closeGuestLoginBtn.onclick = () => guestLoginModal.style.display = "none";
-
-    window.onclick = (event) => {
-        if (event.target == rsvpModal || event.target == adminLoginModal || event.target == guestLoginModal) {
-            event.target.style.display = "none";
+    const loadDonations = async () => {
+        try {
+            const response = await fetch('/api/doacoes', { headers: { 'Authorization': `Bearer ${token}` } });
+            const result = await response.json();
+            if (result.success) {
+                donationsListBody.innerHTML = '';
+                result.data.forEach(doacao => {
+                    const row = document.createElement('tr');
+                    const dataFormatada = new Date(doacao.data_criacao).toLocaleString('pt-BR');
+                    const valorFormatado = parseFloat(doacao.valor).toFixed(2).replace('.', ',');
+                    const tipoFormatado = doacao.tipo === 'pix' ? 'PIX' : 'Cota Lua de Mel';
+                    row.innerHTML = `<td>${doacao.convidado_nome}</td><td>${tipoFormatado}</td><td>R$ ${valorFormatado}</td><td>${dataFormatada}</td><td><a href="${doacao.comprovante_url}" target="_blank" class="btn btn-secondary">Ver</a></td>`;
+                    donationsListBody.appendChild(row);
+                });
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar doações:', error);
         }
     };
 
-    const applyCpfMask = (inputElement) => {
-        if (!inputElement) return;
-        inputElement.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            value = value.replace(/(\d{3})(\d)/, '$1.$2');
-            value = value.replace(/(\d{3})(\d)/, '$1.$2');
-            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-            e.target.value = value;
-        });
-    };
-    applyCpfMask(document.getElementById('cpf'));
-    applyCpfMask(document.getElementById('cpfLogin'));
-
-    const rsvpForm = document.getElementById('rsvpForm');
-    if(rsvpForm) {
-        rsvpForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const submitButton = rsvpForm.querySelector('button[type="submit"]');
-            const originalButtonText = submitButton.textContent;
-            submitButton.disabled = true;
-            submitButton.textContent = 'Enviando...';
-            
-            const fullName = document.getElementById('fullName').value;
-            const formData = new URLSearchParams();
-            formData.append('fullName', fullName);
-            formData.append('cpf', document.getElementById('cpf').value);
-            formData.append('phone', document.getElementById('phone').value);
-            formData.append('password', document.getElementById('passwordRsvp').value);
-
-            fetch('/confirmar-presenca', { method: 'POST', body: formData })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const eventDetails = {
-                        nome: fullName,
-                        data: '01 de Junho de 2026',
-                        horario: '16:00',
-                        local: 'Igreja Matriz São Pedro Apóstolo'
-                    };
-                    window.location.href = `confirmacao.html?${new URLSearchParams(eventDetails).toString()}`;
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Erro de comunicação:', error);
-                alert('Ocorreu um erro de comunicação.');
-            })
-            .finally(() => {
-                submitButton.disabled = false;
-                submitButton.textContent = originalButtonText;
-            });
-        });
-    }
-
-    const adminLoginForm = document.getElementById('adminLoginForm');
-    if(adminLoginForm) {
-        const loginMessage = document.getElementById('loginMessage');
-        adminLoginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const username = adminLoginForm.querySelector('#username').value;
-            const password = adminLoginForm.querySelector('#password').value;
-            loginMessage.textContent = '';
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password }),
-                });
-                const result = await response.json();
-                if (result.success) {
-                    sessionStorage.setItem('authToken', result.token);
-                    window.location.href = 'admin.html';
-                } else {
-                    loginMessage.textContent = result.message;
-                }
-            } catch (error) {
-                loginMessage.textContent = 'Erro de comunicação.';
-            }
-        });
-    }
-
-    const guestLoginForm = document.getElementById('guestLoginForm');
-    if(guestLoginForm) {
-        const guestLoginMessage = document.getElementById('guestLoginMessage');
-        guestLoginForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const cpf = guestLoginForm.querySelector('#cpfLogin').value;
-            const password = guestLoginForm.querySelector('#passwordLogin').value;
-            guestLoginMessage.textContent = '';
-            try {
-                const response = await fetch('/api/guest-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cpf, password }),
-                });
-                const result = await response.json();
-                if (result.success) {
-                    sessionStorage.setItem('guestToken', result.token);
-                    sessionStorage.setItem('guestName', result.nome);
-                    window.location.href = 'presentes.html';
-                } else {
-                    guestLoginMessage.textContent = result.message;
-                }
-            } catch (error) {
-                guestLoginMessage.textContent = 'Erro de comunicação.';
-            }
-        });
-    }
+    loadConfirmedGuests();
+    loadDonations();
 });
