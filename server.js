@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração do Multer para upload de arquivos
+// Configuração do Multer para upload de comprovantes
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'public/uploads/');
@@ -34,20 +34,21 @@ const pool = mysql.createPool({
     queueLimit: 0
 }).promise();
 
-// Rota de RSVP (inclui senha)
+// Rota de RSVP com senha automática
 app.post('/confirmar-presenca', async (req, res) => {
-    const { fullName, cpf, phone, password } = req.body;
-    if (!fullName || !cpf || !phone || !password) {
-        return res.status(400).json({ success: false, message: 'Por favor, preencha todos os campos, incluindo a senha.' });
+    const { fullName, cpf, phone } = req.body;
+    if (!fullName || !cpf || !phone) {
+        return res.status(400).json({ success: false, message: 'Por favor, preencha todos os campos.' });
     }
     try {
+        const senha = cpf.replace(/\D/g, '').slice(-4);
         const checkSql = "SELECT * FROM convidados WHERE cpf = ? OR telefone = ?";
         const [existingGuests] = await pool.query(checkSql, [cpf, phone]);
         if (existingGuests.length > 0) {
             return res.status(409).json({ success: false, message: 'CPF ou Telefone já cadastrados.' });
         }
         const insertSql = "INSERT INTO convidados (nome, cpf, senha, telefone) VALUES (?, ?, ?, ?)";
-        await pool.query(insertSql, [fullName, cpf, password, phone]);
+        await pool.query(insertSql, [fullName, cpf, senha, phone]);
         res.status(200).json({ success: true, message: `Presença confirmada com sucesso, ${fullName}!` });
     } catch (error) {
         console.error('Erro no banco de dados (RSVP):', error);
@@ -76,12 +77,18 @@ app.post('/api/guest-login', async (req, res) => {
     }
 });
 
-// Rota da Lista de Presentes
+// Rota da Lista de Presentes agrupada por categoria
 app.get('/api/presentes', async (req, res) => {
     try {
-        const sql = "SELECT id, titulo, descricao, tipo, preco, imagem_url, link_url, chave_pix, texto_botao, convidado_id FROM presentes ORDER BY id";
+        const sql = "SELECT id, titulo, descricao, tipo, categoria, preco, imagem_url, convidado_id, texto_botao, chave_pix FROM presentes ORDER BY categoria, preco";
         const [presentes] = await pool.query(sql);
-        res.status(200).json({ success: true, data: presentes });
+        const presentesCategorizados = presentes.reduce((acc, presente) => {
+            const categoria = presente.categoria || 'Outros';
+            if (!acc[categoria]) acc[categoria] = [];
+            acc[categoria].push(presente);
+            return acc;
+        }, {});
+        res.status(200).json({ success: true, data: presentesCategorizados });
     } catch (error) {
         console.error('Erro ao buscar presentes:', error);
         res.status(500).json({ success: false, message: 'Erro ao buscar a lista de presentes.' });
@@ -163,9 +170,7 @@ const checkAuth = (req, res, next) => {
 app.get('/api/convidados', checkAuth, async (req, res) => {
     try {
         const sql = `
-            SELECT 
-                c.nome, c.telefone, c.data_confirmacao, 
-                p.titulo as presente_escolhido 
+            SELECT c.nome, c.telefone, c.data_confirmacao, p.titulo as presente_escolhido 
             FROM convidados c 
             LEFT JOIN presentes p ON c.id = p.convidado_id 
             ORDER BY c.data_confirmacao DESC
@@ -194,7 +199,6 @@ app.get('/api/doacoes', checkAuth, async (req, res) => {
         res.status(500).json({ success: false, message: 'Erro ao buscar a lista de doações.' });
     }
 });
-
 
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);

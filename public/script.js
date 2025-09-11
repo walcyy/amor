@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('seconds').innerText = seconds;
         }, 1000);
     }
-
+    
     const rsvpModal = document.getElementById('rsvpModal');
     const adminLoginModal = document.getElementById('adminLoginModal');
     const guestLoginModal = document.getElementById('guestLoginModal');
@@ -34,14 +34,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeAdminLoginBtn = document.getElementById('closeAdminLoginBtn');
     const closeGuestLoginBtn = document.getElementById('closeGuestLoginBtn');
 
-    if(openRsvpBtn) openRsvpBtn.onclick = () => rsvpModal.style.display = "block";
-    if(adminLoginBtn) adminLoginBtn.onclick = () => adminLoginModal.style.display = "block";
-    if(guestLoginBtn) guestLoginBtn.onclick = () => guestLoginModal.style.display = "block";
-    if(guestLoginBtn2) guestLoginBtn2.onclick = () => guestLoginModal.style.display = "block";
+    const openModal = (modal) => { if(modal) modal.style.display = "block"; };
+    const closeModal = (modal) => { if(modal) modal.style.display = "none"; };
+
+    if(openRsvpBtn) openRsvpBtn.onclick = () => openModal(rsvpModal);
+    if(adminLoginBtn) adminLoginBtn.onclick = () => openModal(adminLoginModal);
+    if(guestLoginBtn) guestLoginBtn.onclick = () => openModal(guestLoginModal);
+    if(guestLoginBtn2) guestLoginBtn2.onclick = () => openModal(guestLoginModal);
     
-    if(closeRsvpBtn) closeRsvpBtn.onclick = () => rsvpModal.style.display = "none";
-    if(closeAdminLoginBtn) closeAdminLoginBtn.onclick = () => adminLoginModal.style.display = "none";
-    if(closeGuestLoginBtn) closeGuestLoginBtn.onclick = () => guestLoginModal.style.display = "none";
+    if(closeRsvpBtn) closeRsvpBtn.onclick = () => closeModal(rsvpModal);
+    if(closeAdminLoginBtn) closeAdminLoginBtn.onclick = () => closeModal(adminLoginModal);
+    if(closeGuestLoginBtn) closeGuestLoginBtn.onclick = () => closeModal(guestLoginModal);
 
     window.onclick = (event) => {
         if (event.target == rsvpModal || event.target == adminLoginModal || event.target == guestLoginModal) {
@@ -72,11 +75,13 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.textContent = 'Enviando...';
             
             const fullName = document.getElementById('fullName').value;
+            const cpf = document.getElementById('cpf').value;
+            const phone = document.getElementById('phone').value;
+
             const formData = new URLSearchParams();
             formData.append('fullName', fullName);
-            formData.append('cpf', document.getElementById('cpf').value);
-            formData.append('phone', document.getElementById('phone').value);
-            formData.append('password', document.getElementById('passwordRsvp').value);
+            formData.append('cpf', cpf);
+            formData.append('phone', phone);
 
             fetch('/confirmar-presenca', { method: 'POST', body: formData })
             .then(response => response.json())

@@ -9,6 +9,7 @@
 <body>
     <div class="container admin-container">
         <header class="header">
+            <a href="index.html" class="btn btn-secondary btn-back">Voltar ao Convite</a>
             <h2 id="welcomeMessage">Bem-vindo(a)!</h2>
             <h1>Lista de Presentes</h1>
             <p>Escolha um item da nossa lista ou contribua com um valor para o PIX ou nossa Lua de Mel.</p>
@@ -30,10 +31,10 @@
                 <div id="pixInfo" style="display: none;">
                     <p><strong>Faça a transferência para a Chave PIX (E-mail):</strong></p>
                     <p class="pix-key">steffany.walci@email.com</p>
-                    <p style="margin-top:15px;">Depois, preencha os campos abaixo e anexe o comprovante.</p>
+                    <p class="modal-subtitle">Depois, preencha os campos abaixo e anexe o comprovante.</p>
                 </div>
                 <div id="honeymoonInfo" style="display: none;">
-                    <p>Sua contribuição ajudará a tornar nossa lua de mel inesquecível! O valor máximo por cota é de R$ 2000,00.</p>
+                    <p class="modal-subtitle">Sua contribuição ajudará a tornar nossa lua de mel inesquecível! O valor máximo por cota é de R$ 2000,00.</p>
                 </div>
                 
                 <input type="hidden" id="contributionType" name="tipo">
@@ -44,7 +45,7 @@
                 <label for="receiptFile">Anexar Comprovante (Obrigatório):</label>
                 <input type="file" id="receiptFile" name="comprovante" accept="image/*,application/pdf" required>
                 
-                <button type="submit" class="btn">Enviar Contribuição</button>
+                <button type="submit" class="btn">Enviar Registro</button>
                  <p id="contributionMessage" class="login-message"></p>
             </form>
         </div>
