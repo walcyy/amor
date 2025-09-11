@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // Seletores de elementos
     const guestListBody = document.getElementById('guestListBody');
     const guestCount = document.getElementById('guestCount');
     const donationsListBody = document.getElementById('donationsListBody');
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const photoIdInput = document.getElementById('photoId');
     const guestTagsSelect = document.getElementById('guestTags');
 
+    // Função genérica para requisições autenticadas
     const fetchWithAuth = async (url) => {
         const response = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
         const result = await response.json();
@@ -27,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return result;
     };
 
+    // Carrega estatísticas do Dashboard
     const loadDashboardStats = async () => {
         try {
             const result = await fetchWithAuth('/api/dashboard-stats');
@@ -34,10 +37,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('statConvidados').textContent = stats.totalConvidados;
             document.getElementById('statPresentes').textContent = stats.presentesEscolhidos;
             document.getElementById('statQtdDoacoes').textContent = stats.qtdDoacoes;
-            document.getElementById('statValorDoacoes').textContent = parseFloat(stats.totalDoacoes).toFixed(2).replace('.', ',');
+            document.getElementById('statValorDoacoes').textContent = parseFloat(stats.totalDoacoes || 0).toFixed(2).replace('.', ',');
         } catch (error) { console.error('Erro ao carregar estatísticas:', error); }
     };
 
+    // Carrega a lista de convidados confirmados
     const loadConfirmedGuests = async () => {
         try {
             const result = await fetchWithAuth('/api/convidados');
@@ -62,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
     
+    // Carrega a lista de doações financeiras
     const loadDonations = async () => {
         try {
             const result = await fetchWithAuth('/api/doacoes');
@@ -83,6 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { console.error('Erro ao buscar doações:', error); }
     };
 
+    // Carrega a lista de convidados para a etiquetagem de fotos
     const loadGuestsForTagging = async () => {
         try {
             const result = await fetchWithAuth('/api/convidados-nomes');
@@ -96,6 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { console.error('Erro ao carregar lista de convidados para etiquetar', error); }
     };
 
+    // Lida com o formulário de upload de foto
     photoUploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData();
@@ -118,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { alert('Erro ao enviar foto.'); }
     });
 
+    // Lida com o formulário de etiquetagem de foto
     photoTagForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const fotoId = photoIdInput.value;
@@ -139,6 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { alert('Erro ao etiquetar foto.'); }
     });
 
+    // Lida com o botão de exportar para CSV
     exportBtn.addEventListener('click', async () => {
         try {
             const response = await fetch('/api/convidados/export', { headers: { 'Authorization': `Bearer ${token}` } });
@@ -157,6 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { alert(error.message); }
     });
 
+    // Carrega todos os dados da página
     loadDashboardStats();
     loadConfirmedGuests();
     loadDonations();
