@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- LÓGICA DA CONTAGEM REGRESSIVA (se existir na página) ---
     const countdownEl = document.getElementById('countdown');
     if (countdownEl) {
+        // Data do Casamento: 1 de Junho de 2026, às 16:00
         const weddingDate = new Date('2026-06-01T16:00:00').getTime();
         const countdownInterval = setInterval(() => {
             const now = new Date().getTime();
