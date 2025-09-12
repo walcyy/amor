@@ -18,9 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const contributionForm = document.getElementById('contributionForm');
     const photoGalleryContainer = document.getElementById('photoGalleryContainer');
     const giftSearchInput = document.getElementById('giftSearchInput');
-    let allGifts = {}; // Guarda a lista original de presentes
+    let allGifts = {};
 
-    // Lógica das Abas
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(item => item.classList.remove('active'));
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Renderiza a lista de presentes na tela
     const renderGifts = (categories) => {
         giftListContainer.innerHTML = '';
         if (Object.keys(categories).length === 0) {
@@ -73,7 +71,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         giftListContainer.appendChild(accordion);
     };
     
-    // Busca a lista de presentes da API
     const loadGifts = async () => {
         giftListContainer.innerHTML = '<p>Carregando presentes...</p>';
         try {
@@ -86,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch(e) { giftListContainer.innerHTML = '<p>Erro ao carregar presentes.</p>'; }
     };
 
-    // Busca a galeria de fotos personalizada da API
     const loadPhotos = async () => {
         photoGalleryContainer.innerHTML = '<p>Carregando suas fotos...</p>';
         try {
@@ -111,19 +107,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { photoGalleryContainer.innerHTML = '<p>Erro ao carregar suas fotos.</p>'; }
     };
     
-    // Busca a mensagem personalizada dos noivos
-    const loadCustomMessage = async () => {
-        const customWelcomeMessageEl = document.getElementById('customWelcomeMessage');
-        try {
-            const response = await fetch('/api/mensagem');
-            const result = await response.json();
-            if(result.success && customWelcomeMessageEl) {
-                customWelcomeMessageEl.textContent = result.data.mensagem_convidado;
-            }
-        } catch (error) { console.error('Erro ao buscar mensagem personalizada:', error); }
-    };
-
-    // Lógica do filtro de busca de presentes
     giftSearchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase().trim();
         if (!searchTerm) {
@@ -143,7 +126,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderGifts(filteredGifts);
     });
 
-    // Lógica para abrir modal de contribuição e selecionar presente físico
     giftListContainer.addEventListener('click', async (event) => {
         const target = event.target;
         if (target.classList.contains('btn-contribute')) {
@@ -181,10 +163,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Fecha o modal de contribuição
     if(closeContributionBtn) closeContributionBtn.onclick = () => contributionModal.style.display = 'none';
 
-    // Lida com o envio do formulário de contribuição
     if(contributionForm) {
         contributionForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -213,7 +193,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Carrega os dados iniciais da página
     loadGifts();
     loadPhotos();
     loadCustomMessage();

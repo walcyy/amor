@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- LÓGICA DA CONTAGEM REGRESSIVA (se existir na página) ---
     const countdownEl = document.getElementById('countdown');
     if (countdownEl) {
-        // Data do Casamento: 1 de Junho de 2026, às 16:00
         const weddingDate = new Date('2026-06-01T16:00:00').getTime();
         const countdownInterval = setInterval(() => {
             const now = new Date().getTime();
@@ -24,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
     
-    // --- LÓGICA DOS MODAIS ---
     const rsvpModal = document.getElementById('rsvpModal');
     const adminLoginModal = document.getElementById('adminLoginModal');
     const guestLoginModal = document.getElementById('guestLoginModal');
@@ -56,7 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // --- MÁSCARAS E VALIDAÇÕES ---
     const applyCpfMask = (inputElement) => {
         if (!inputElement) return;
         inputElement.addEventListener('input', (e) => {
@@ -81,16 +76,13 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     applyPhoneMask(document.getElementById('phone'));
 
-    // --- LÓGICA DO FORMULÁRIO DE RSVP ---
     const rsvpForm = document.getElementById('rsvpForm');
     if(rsvpForm) {
         rsvpForm.addEventListener('submit', function(event) {
             event.preventDefault();
-
             const fullName = document.getElementById('fullName').value;
             const cpf = document.getElementById('cpf').value;
             const phone = document.getElementById('phone').value;
-
             if (cpf.length !== 14) {
                 alert('CPF inválido. Por favor, preencha todos os 11 dígitos.');
                 return;
@@ -104,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Número de celular inválido. O primeiro dígito após o DDD deve ser 9.');
                 return;
             }
-
             const submitButton = rsvpForm.querySelector('button[type="submit"]');
             const originalButtonText = submitButton.textContent;
             submitButton.disabled = true;
@@ -141,7 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- LÓGICA DO FORMULÁRIO DE LOGIN DO ADMIN ---
     const adminLoginForm = document.getElementById('adminLoginForm');
     if(adminLoginForm) {
         const loginMessage = document.getElementById('loginMessage');
@@ -169,7 +159,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- LÓGICA DO FORMULÁRIO DE LOGIN DO CONVIDADO ---
     const guestLoginForm = document.getElementById('guestLoginForm');
     if(guestLoginForm) {
         const guestLoginMessage = document.getElementById('guestLoginMessage');
