@@ -163,6 +163,20 @@ app.get('/api/minhas-fotos', checkGuestAuth, async (req, res) => {
     }
 });
 
+app.get('/api/mensagem', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT mensagem_convidado FROM configuracoes WHERE id = 1");
+        if (rows.length > 0) {
+            res.json({ success: true, data: rows[0] });
+        } else {
+            res.json({ success: true, data: { mensagem_convidado: '' } });
+        }
+    } catch (error) {
+        console.error('Erro ao buscar mensagem:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor.' });
+    }
+});
+
 // --- ROTAS DE ADMIN ---
 const checkAuth = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -201,7 +215,7 @@ app.get('/api/convidados', checkAuth, async (req, res) => {
 app.get('/api/doacoes', checkAuth, async (req, res) => {
     try {
         const sql = `
-            SELECT d.tipo, d.valor, d.comprovante_url, d.data_criacao, c.nome as convidado_nome 
+            SELECT d.id, d.tipo, d.valor, d.comprovante_url, d.data_criacao, d.status, c.nome as convidado_nome 
             FROM doacoes d 
             JOIN convidados c ON d.convidado_id = c.id 
             ORDER BY d.data_criacao DESC
@@ -211,6 +225,35 @@ app.get('/api/doacoes', checkAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro ao buscar doações:', error);
         res.status(500).json({ success: false, message: 'Erro ao buscar a lista de doações.' });
+    }
+});
+
+app.post('/api/doacoes/confirmar/:id', checkAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [result] = await pool.query("UPDATE doacoes SET status = 'confirmado' WHERE id = ?", [id]);
+        if (result.affectedRows > 0) {
+            res.json({ success: true, message: 'Pagamento confirmado com sucesso!' });
+        } else {
+            res.status(404).json({ success: false, message: 'Doação não encontrada.' });
+        }
+    } catch (error) {
+        console.error('Erro ao confirmar pagamento:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor.' });
+    }
+});
+
+app.put('/api/mensagem', checkAuth, async (req, res) => {
+    const { mensagem } = req.body;
+    if (typeof mensagem === 'undefined') {
+        return res.status(400).json({ success: false, message: 'Mensagem não fornecida.' });
+    }
+    try {
+        await pool.query("UPDATE configuracoes SET mensagem_convidado = ? WHERE id = 1", [mensagem]);
+        res.json({ success: true, message: 'Mensagem atualizada com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao atualizar mensagem:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor.' });
     }
 });
 

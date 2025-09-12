@@ -31,6 +31,14 @@
                 <p>R$ <span id="statValorDoacoes">0,00</span></p>
             </div>
         </section>
+        
+        <section class="message-management-section">
+            <h2>Mensagem para a Área do Convidado</h2>
+            <form id="messageForm">
+                <textarea id="guestMessageText" rows="4" placeholder="Escreva aqui uma mensagem de boas-vindas para seus convidados..."></textarea>
+                <button type="submit" class="btn">Salvar Mensagem</button>
+            </form>
+        </section>
 
         <section class="photo-management-section">
             <h2>Gerenciar Fotos dos Convidados</h2>
@@ -83,6 +91,8 @@
                         <th>Valor (R$)</th>
                         <th>Data</th>
                         <th>Comprovante</th>
+                        <th>Status</th>
+                        <th>Ação</th>
                     </tr>
                 </thead>
                 <tbody id="donationsListBody"></tbody>
