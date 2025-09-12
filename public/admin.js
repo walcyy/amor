@@ -39,26 +39,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Carrega a lista de convidados confirmados com verificação
     const loadConfirmedGuests = async () => {
-        const guestCountEl = document.getElementById('guestCount');
-        const guestListBodyEl = document.getElementById('guestListBody');
-        if (!guestCountEl || !guestListBodyEl) return;
-
         try {
             const result = await fetchWithAuth('/api/convidados');
-            guestCountEl.textContent = result.data.length;
-            guestListBodyEl.innerHTML = '';
-            result.data.forEach(convidado => {
-                const row = document.createElement('tr');
-                const dataConfirmacao = new Date(convidado.data_confirmacao).toLocaleString('pt-BR');
-                const presente = convidado.presente_escolhido || '—';
-                row.innerHTML = `
-                    <td data-label="Nome">${convidado.nome}</td>
-                    <td data-label="Telefone">${convidado.telefone}</td>
-                    <td data-label="Presente Físico">${presente}</td>
-                    <td data-label="Data Confirmação">${dataConfirmacao}</td>
-                `;
-                guestListBodyEl.appendChild(row);
-            });
+
+            const guestCountEl = document.getElementById('guestCount');
+            if (guestCountEl) guestCountEl.textContent = result.data.length;
+
+            const guestListBodyEl = document.getElementById('guestListBody');
+            if (guestListBodyEl) {
+                guestListBodyEl.innerHTML = '';
+                result.data.forEach(convidado => {
+                    const row = document.createElement('tr');
+                    const dataConfirmacao = new Date(convidado.data_confirmacao).toLocaleString('pt-BR');
+                    const presente = convidado.presente_escolhido || '—';
+                    row.innerHTML = `
+                        <td data-label="Nome">${convidado.nome}</td>
+                        <td data-label="Telefone">${convidado.telefone}</td>
+                        <td data-label="Presente Físico">${presente}</td>
+                        <td data-label="Data Confirmação">${dataConfirmacao}</td>
+                    `;
+                    guestListBodyEl.appendChild(row);
+                });
+            }
         } catch (error) {
             alert(error.message);
             sessionStorage.removeItem('authToken');
@@ -114,12 +116,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     const exportBtn = document.getElementById('exportBtn');
     
     if (photoUploadForm && photoTagForm) {
-        // ... (código dos formulários de foto igual a antes, pois já são baseados em eventos) ...
+        const photoFile = document.getElementById('photoFile');
+        const photoDescription = document.getElementById('photoDescription');
+        const uploadedPhotoPreview = document.getElementById('uploadedPhotoPreview');
+        const photoIdInput = document.getElementById('photoId');
+        const guestTagsSelect = document.getElementById('guestTags');
+
+        photoUploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('foto', photoFile.files[0]);
+            formData.append('descricao', photoDescription.value);
+            try {
+                const response = await fetch('/api/fotos/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                const result = await response.json();
+                alert(result.message);
+                if(result.success) {
+                    photoUploadForm.style.display = 'none';
+                    photoTagForm.style.display = 'block';
+                    uploadedPhotoPreview.src = result.url;
+                    photoIdInput.value = result.fotoId;
+                }
+            } catch (error) { alert('Erro ao enviar foto.'); }
+        });
+
+        photoTagForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fotoId = photoIdInput.value;
+            const selectedOptions = Array.from(guestTagsSelect.selectedOptions).map(opt => opt.value);
+            try {
+                const response = await fetch('/api/fotos/etiquetar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ fotoId, convidadosIds: selectedOptions })
+                });
+                const result = await response.json();
+                alert(result.message);
+                if(result.success) {
+                    photoUploadForm.reset();
+                    photoTagForm.reset();
+                    photoTagForm.style.display = 'none';
+                    photoUploadForm.style.display = 'block';
+                }
+            } catch (error) { alert('Erro ao etiquetar foto.'); }
+        });
     }
 
     if (exportBtn) {
         exportBtn.addEventListener('click', async () => {
-            // ... (código do botão de exportar igual a antes) ...
+            try {
+                const response = await fetch('/api/convidados/export', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!response.ok) throw new Error('Falha ao gerar o arquivo.');
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'lista_de_convidados.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+            } catch (error) { alert(error.message); }
         });
     }
 
