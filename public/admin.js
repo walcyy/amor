@@ -21,12 +21,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const photoIdInput = document.getElementById('photoId');
     const guestTagsSelect = document.getElementById('guestTags');
 
-    // Função genérica para requisições autenticadas
+    // [CORRIGIDO] - Função genérica para requisições autenticadas
     const fetchWithAuth = async (url, options = {}) => {
-        const defaultOptions = {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const defaultHeaders = {
+            'Authorization': `Bearer ${token}`
         };
-        const response = await fetch(url, { ...defaultOptions, ...options });
+
+        // Combina os headers padrão com quaisquer headers passados nas opções
+        const finalOptions = {
+            ...options,
+            headers: {
+                ...defaultHeaders,
+                ...options.headers,
+            }
+        };
+
+        const response = await fetch(url, finalOptions);
         const result = await response.json();
         if (!response.ok || !result.success) {
             throw new Error(result.message || 'Sessão expirada. Faça login novamente.');
@@ -159,12 +169,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             formData.append('foto', photoFile.files[0]);
             formData.append('descricao', photoDescription.value);
             try {
-                const response = await fetch('/api/fotos/upload', {
+                const result = await fetchWithAuth('/api/fotos/upload', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
-                const result = await response.json();
                 alert(result.message);
                 if(result.success) {
                     photoUploadForm.style.display = 'none';
