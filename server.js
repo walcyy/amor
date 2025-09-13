@@ -196,12 +196,8 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// [ATUALIZADO COM LOGS DE DIAGNÓSTICO]
 app.get('/api/convidados', checkAuth, async (req, res) => {
     try {
-        // Log 1: Avisa que a rota foi chamada
-        console.log(">>> [ADMIN] Buscando lista de convidados...");
-
         const sql = `
             SELECT c.nome, c.telefone, c.data_confirmacao, p.titulo as presente_escolhido 
             FROM convidados c 
@@ -209,10 +205,6 @@ app.get('/api/convidados', checkAuth, async (req, res) => {
             ORDER BY c.data_confirmacao DESC
         `;
         const [convidados] = await pool.query(sql);
-
-        // Log 2: Mostra quantos convidados foram encontrados
-        console.log(`>>> [ADMIN] Total de convidados encontrados no banco: ${convidados.length}`);
-
         res.status(200).json({ success: true, data: convidados });
     } catch (error) {
         console.error('Erro ao buscar convidados:', error);

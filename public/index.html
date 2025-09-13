@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Convite de Casamento - Steffany & Walci</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="login-buttons-container">
-                <button id="guestLoginBtn" class="btn btn-secondary">Área do Convidado</button>
-                <button id="adminLoginBtn" class="btn btn-secondary">Área dos Noivos</button>
+                <button id="guestLoginBtn" class="btn btn-secondary"><i class="fa-solid fa-user-check"></i> Área do Convidado</button>
+                <button id="adminLoginBtn" class="btn btn-secondary"><i class="fa-solid fa-lock"></i> Área dos Noivos</button>
             </div>
             <h1>Steffany <span class="heart">♥</span> Walci</h1>
             <h2>Juntos para Sempre</h2>
@@ -32,6 +33,24 @@
             <p>Sua presença será a maior de todas as bênçãos.</p>
         </section>
 
+        <section class="details-section">
+            <div class="details-card">
+                <h3>Cerimônia Religiosa</h3>
+                <p><strong>Data:</strong> 01 de Junho de 2026</p>
+                <p><strong>Horário:</strong> 16:00</p>
+                <p><strong>Local:</strong> Igreja Matriz São Pedro Apóstolo</p>
+                <p>Av. Borges de Medeiros, 2659 - Gramado, RS</p>
+                <a href="http://googleusercontent.com/maps/about/" target="_blank" class="btn">Ver no Mapa</a>
+            </div>
+            <div class="details-card">
+                <h3>Recepção</h3>
+                <p><strong>Horário:</strong> 18:00</p>
+                <p><strong>Local:</strong> Salão de Festas Encantado</p>
+                <p>Avenida Principal, 456 - Gramado, RS</p>
+                <a href="http://googleusercontent.com/maps/about/" target="_blank" class="btn">Ver no Mapa</a>
+            </div>
+        </section>
+
         <section class="gifts-section">
             <h3>Lista de Presentes</h3>
             <p>Nossos convidados confirmados podem acessar a lista de presentes na Área do Convidado.</p>
@@ -41,7 +60,7 @@
         <section class="rsvp-section">
             <h3>Confirme sua Presença</h3>
             <p>Para ter acesso à lista de presentes e outras informações, primeiro confirme sua presença.</p>
-            <button id="openRsvpBtn" class="btn">Confirmar Presença (RSVP)</button>
+            <button id="openRsvpBtn" class="btn">Confirmar Presença</button>
         </section>
 
         <footer class="footer">

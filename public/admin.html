@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel dos Noivos - Steffany & Walci</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container admin-container">
         <header class="header">
-            <a href="index.html" class="btn btn-secondary btn-back">Voltar ao Convite</a>
+            <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i>Voltar</a>
             <h1>Painel dos Noivos</h1>
         </header>
 
@@ -32,36 +33,38 @@
             </div>
         </section>
 
-        <section class="message-management-section">
-            <h2>Mensagem para a Área do Convidado</h2>
-            <form id="messageForm">
-                <textarea id="guestMessageText" rows="4" placeholder="Escreva aqui uma mensagem de boas-vindas para seus convidados..."></textarea>
-                <button type="submit" class="btn">Salvar Mensagem</button>
-            </form>
-        </section>
+        <div class="admin-grid">
+            <section class="admin-card">
+                <h3><i class="fa-solid fa-pencil"></i> Mensagem para Convidados</h3>
+                <form id="messageForm">
+                    <textarea id="guestMessageText" rows="4" placeholder="Escreva aqui uma mensagem de boas-vindas..."></textarea>
+                    <button type="submit" class="btn">Salvar Mensagem</button>
+                </form>
+            </section>
 
-        <section class="photo-management-section">
-            <h2>Gerenciar Fotos dos Convidados</h2>
-            <div class="form-container">
-                <form id="photoUploadForm">
-                    <h3>Passo 1: Enviar Nova Foto</h3>
-                    <label for="photoFile">Arquivo da Foto:</label>
-                    <input type="file" id="photoFile" name="foto" accept="image/*" required>
-                    <label for="photoDescription">Descrição (opcional):</label>
-                    <input type="text" id="photoDescription" name="descricao" placeholder="Ex: Foto na mesa do bolo">
-                    <button type="submit" class="btn">Enviar Foto</button>
-                </form>
-                <form id="photoTagForm" style="display: none;">
-                    <h3>Passo 2: Etiquetar Convidados na Foto</h3>
-                    <img id="uploadedPhotoPreview" src="" alt="Preview da Foto" />
-                    <input type="hidden" id="photoId" name="fotoId">
-                    <label for="guestTags">Selecione os convidados presentes na foto:</label>
-                    <select id="guestTags" name="convidadosIds" multiple required></select>
-                    <p class="modal-subtitle">Segure Ctrl (ou Cmd no Mac) para selecionar mais de um.</p>
-                    <button type="submit" class="btn">Salvar Etiquetas</button>
-                </form>
-            </div>
-        </section>
+            <section class="admin-card">
+                <h3><i class="fa-solid fa-camera-retro"></i> Gerenciar Fotos</h3>
+                <div class="form-container">
+                    <form id="photoUploadForm">
+                        <h4>Passo 1: Enviar Nova Foto</h4>
+                        <label for="photoFile">Arquivo da Foto:</label>
+                        <input type="file" id="photoFile" name="foto" accept="image/*" required>
+                        <label for="photoDescription">Descrição (opcional):</label>
+                        <input type="text" id="photoDescription" name="descricao" placeholder="Ex: Foto na mesa do bolo">
+                        <button type="submit" class="btn">Enviar Foto</button>
+                    </form>
+                    <form id="photoTagForm" style="display: none;">
+                        <h4>Passo 2: Etiquetar Convidados</h4>
+                        <img id="uploadedPhotoPreview" src="" alt="Preview" />
+                        <input type="hidden" id="photoId" name="fotoId">
+                        <label for="guestTags">Selecione os convidados:</label>
+                        <select id="guestTags" name="convidadosIds" multiple required></select>
+                        <p class="modal-subtitle">Segure Ctrl/Cmd para selecionar mais de um.</p>
+                        <button type="submit" class="btn">Salvar Etiquetas</button>
+                    </form>
+                </div>
+            </section>
+        </div>
 
         <section class="guest-list-section">
             <div class="section-header">
@@ -82,7 +85,7 @@
         </section>
 
         <section class="donations-list-section">
-            <h2>Contribuições Financeiras (PIX e Cotas)</h2>
+            <h2>Contribuições Financeiras (PIX e Lua de Mel)</h2>
             <table class="guest-table">
                 <thead>
                     <tr>

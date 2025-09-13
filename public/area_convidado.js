@@ -8,8 +8,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
     
-    document.getElementById('welcomeMessage').textContent = `Bem-vindo(a), ${guestName}!`;
-    
+    // Elementos da página
+    const welcomeMessageEl = document.getElementById('welcomeMessage');
+    const customWelcomeMessageEl = document.getElementById('customWelcomeMessage');
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
     const giftListContainer = document.getElementById('giftListContainer');
@@ -18,8 +19,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const contributionForm = document.getElementById('contributionForm');
     const photoGalleryContainer = document.getElementById('photoGalleryContainer');
     const giftSearchInput = document.getElementById('giftSearchInput');
-    let allGifts = {};
+    let allGifts = {}; // Guarda a lista original de presentes
 
+    if (welcomeMessageEl) {
+        welcomeMessageEl.textContent = `Bem-vindo(a), ${guestName}!`;
+    }
+    
+    // Lógica das Abas
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(item => item.classList.remove('active'));
@@ -29,7 +35,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Renderiza a lista de presentes na tela
     const renderGifts = (categories) => {
+        if (!giftListContainer) return;
         giftListContainer.innerHTML = '';
         if (Object.keys(categories).length === 0) {
             giftListContainer.innerHTML = '<p>Nenhum presente encontrado com esse nome.</p>';
@@ -71,7 +79,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         giftListContainer.appendChild(accordion);
     };
     
+    // Busca a lista de presentes da API
     const loadGifts = async () => {
+        if (!giftListContainer) return;
         giftListContainer.innerHTML = '<p>Carregando presentes...</p>';
         try {
             const response = await fetch('/api/presentes');
@@ -83,7 +93,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch(e) { giftListContainer.innerHTML = '<p>Erro ao carregar presentes.</p>'; }
     };
 
+    // Busca a galeria de fotos personalizada da API
     const loadPhotos = async () => {
+        if (!photoGalleryContainer) return;
         photoGalleryContainer.innerHTML = '<p>Carregando suas fotos...</p>';
         try {
             const response = await fetch('/api/minhas-fotos', { headers: { 'Authorization': `Bearer ${guestToken}` } });
@@ -107,64 +119,84 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { photoGalleryContainer.innerHTML = '<p>Erro ao carregar suas fotos.</p>'; }
     };
     
-    giftSearchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        if (!searchTerm) {
-            renderGifts(allGifts);
-            return;
-        }
-        const filteredGifts = {};
-        for (const categoryName in allGifts) {
-            const matchingGifts = allGifts[categoryName].filter(presente => 
-                presente.titulo.toLowerCase().includes(searchTerm) ||
-                presente.descricao.toLowerCase().includes(searchTerm)
-            );
-            if (matchingGifts.length > 0) {
-                filteredGifts[categoryName] = matchingGifts;
+    // Busca a mensagem personalizada dos noivos
+    const loadCustomMessage = async () => {
+        if (!customWelcomeMessageEl) return;
+        try {
+            const response = await fetch('/api/mensagem');
+            const result = await response.json();
+            if(result.success) {
+                customWelcomeMessageEl.textContent = result.data.mensagem_convidado;
             }
-        }
-        renderGifts(filteredGifts);
-    });
+        } catch (error) { console.error('Erro ao buscar mensagem personalizada:', error); }
+    };
 
-    giftListContainer.addEventListener('click', async (event) => {
-        const target = event.target;
-        if (target.classList.contains('btn-contribute')) {
-            const tipo = target.dataset.type;
-            const title = target.dataset.title;
-            const pixKey = target.dataset.pixkey;
-            document.getElementById('contributionTitle').textContent = title;
-            document.getElementById('contributionType').value = tipo;
-            const pixInfoDiv = document.getElementById('pixInfo');
-            if (pixInfoDiv.querySelector('.pix-key')) {
-                 pixInfoDiv.querySelector('.pix-key').textContent = pixKey;
+    // Lógica do filtro de busca de presentes
+    if (giftSearchInput) {
+        giftSearchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            if (!searchTerm) {
+                renderGifts(allGifts);
+                return;
             }
-            pixInfoDiv.style.display = (tipo === 'pix') ? 'block' : 'none';
-            document.getElementById('honeymoonInfo').style.display = (tipo === 'lua_de_mel') ? 'block' : 'none';
-            contributionModal.style.display = 'block';
-        }
-
-        if (target.classList.contains('btn-select-gift') && !target.disabled) {
-            const presenteId = target.dataset.id;
-            if (!presenteId) return;
-            if (confirm('Você tem certeza que deseja escolher este presente? Esta ação não pode ser desfeita.')) {
-                try {
-                    const response = await fetch('/api/selecionar-presente', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${guestToken}` },
-                        body: JSON.stringify({ presenteId })
-                    });
-                    const result = await response.json();
-                    alert(result.message);
-                    if (result.success) loadGifts();
-                } catch(e) {
-                    alert('Erro de comunicação ao selecionar o presente.');
+            const filteredGifts = {};
+            for (const categoryName in allGifts) {
+                const matchingGifts = allGifts[categoryName].filter(presente => 
+                    presente.titulo.toLowerCase().includes(searchTerm) ||
+                    presente.descricao.toLowerCase().includes(searchTerm)
+                );
+                if (matchingGifts.length > 0) {
+                    filteredGifts[categoryName] = matchingGifts;
                 }
             }
-        }
-    });
+            renderGifts(filteredGifts);
+        });
+    }
 
+    // Lógica para abrir modal de contribuição e selecionar presente físico
+    if (giftListContainer) {
+        giftListContainer.addEventListener('click', async (event) => {
+            const target = event.target;
+            if (target.classList.contains('btn-contribute')) {
+                const tipo = target.dataset.type;
+                const title = target.dataset.title;
+                const pixKey = target.dataset.pixkey;
+                document.getElementById('contributionTitle').textContent = title;
+                document.getElementById('contributionType').value = tipo;
+                const pixInfoDiv = document.getElementById('pixInfo');
+                if (pixInfoDiv.querySelector('.pix-key')) {
+                     pixInfoDiv.querySelector('.pix-key').textContent = pixKey;
+                }
+                pixInfoDiv.style.display = (tipo === 'pix') ? 'block' : 'none';
+                document.getElementById('honeymoonInfo').style.display = (tipo === 'lua_de_mel') ? 'block' : 'none';
+                contributionModal.style.display = 'block';
+            }
+    
+            if (target.classList.contains('btn-select-gift') && !target.disabled) {
+                const presenteId = target.dataset.id;
+                if (!presenteId) return;
+                if (confirm('Você tem certeza que deseja escolher este presente? Esta ação não pode ser desfeita.')) {
+                    try {
+                        const response = await fetch('/api/selecionar-presente', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${guestToken}` },
+                            body: JSON.stringify({ presenteId })
+                        });
+                        const result = await response.json();
+                        alert(result.message);
+                        if (result.success) loadGifts();
+                    } catch(e) {
+                        alert('Erro de comunicação ao selecionar o presente.');
+                    }
+                }
+            }
+        });
+    }
+
+    // Fecha o modal de contribuição
     if(closeContributionBtn) closeContributionBtn.onclick = () => contributionModal.style.display = 'none';
 
+    // Lida com o envio do formulário de contribuição
     if(contributionForm) {
         contributionForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -193,6 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
+    // Carrega os dados iniciais da página
     loadGifts();
     loadPhotos();
     loadCustomMessage();
