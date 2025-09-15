@@ -13,7 +13,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const customWelcomeMessageEl = document.getElementById('customWelcomeMessage');
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
-    const giftListContainer = document.getElementById('giftListContainer');
+    
+    // [CORRIGIDO] O ID do container de presentes no HTML é "gifts"
+    const giftListContainer = document.getElementById('gifts'); 
+
     const contributionModal = document.getElementById('contributionModal');
     const closeContributionBtn = document.getElementById('closeContributionBtn');
     const contributionForm = document.getElementById('contributionForm');
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
                     }
                 } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
-                     content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
+                         content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
                 }
                 itemDiv.innerHTML = content;
                 grid.appendChild(itemDiv);
