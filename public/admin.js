@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Seletores de elementos
     const guestListBody = document.getElementById('guestListBody');
-    const guestCount = document.getElementById('guestCount');
     const donationsListBody = document.getElementById('donationsListBody');
     const exportBtn = document.getElementById('exportBtn');
     const messageForm = document.getElementById('messageForm');
@@ -21,13 +20,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const photoIdInput = document.getElementById('photoId');
     const guestTagsSelect = document.getElementById('guestTags');
 
-    // [CORRIGIDO] - Função genérica para requisições autenticadas
+    // Função genérica para requisições autenticadas
     const fetchWithAuth = async (url, options = {}) => {
         const defaultHeaders = {
             'Authorization': `Bearer ${token}`
         };
 
-        // Combina os headers padrão com quaisquer headers passados nas opções
         const finalOptions = {
             ...options,
             headers: {
@@ -60,24 +58,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) { console.error('Erro ao carregar estatísticas:', error); }
     };
 
-    // Carrega a lista de convidados confirmados
+    // =========================================================================
+    // Carrega a lista de convidados confirmados [FUNÇÃO ATUALIZADA E CORRIGIDA]
+    // =========================================================================
     const loadConfirmedGuests = async () => {
-        if (!guestCount || !guestListBody) return;
+        // Verifica se o elemento da tabela existe na página
+        if (!guestListBody) return;
+        
+        // Elemento que mostra a contagem (pode ser diferente do painel de stats)
+        const guestCountDisplay = document.getElementById('guestCount');
+
         try {
-            const result = await fetchWithAuth('/api/convidados');
-            guestCount.textContent = result.data.length;
-            guestListBody.innerHTML = '';
-            result.data.forEach(convidado => {
-                const row = document.createElement('tr');
-                const dataConfirmacao = new Date(convidado.data_confirmacao).toLocaleString('pt-BR');
-                const presente = convidado.presente_escolhido || '—';
-                row.innerHTML = `<td data-label="Nome">${convidado.nome}</td><td data-label="Telefone">${convidado.telefone}</td><td data-label="Presente Físico">${presente}</td><td data-label="Data Confirmação">${dataConfirmacao}</td>`;
-                guestListBody.appendChild(row);
-            });
+            // Adiciona um feedback visual de carregamento
+            guestListBody.innerHTML = `<tr><td colspan="4">Carregando lista de convidados...</td></tr>`;
+
+            const result = await fetchWithAuth('/api/convidados'); // Endpoint que deve trazer os dados completos
+
+            // Limpa a tabela para receber os novos dados
+            guestListBody.innerHTML = ''; 
+
+            if (result.data && result.data.length > 0) {
+                // Atualiza a contagem de convidados
+                if (guestCountDisplay) {
+                    guestCountDisplay.textContent = result.data.length;
+                }
+
+                result.data.forEach(convidado => {
+                    const row = document.createElement('tr');
+
+                    // --- MELHORIA: Validação da Data ---
+                    // Verifica se a data é válida antes de tentar formatá-la
+                    const dataConfirmacao = convidado.data_confirmacao 
+                        ? new Date(convidado.data_confirmacao).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+                        : '—'; // Usa um traço se a data for nula ou inválida
+
+                    const presente = convidado.presente_escolhido || '—';
+                    const telefone = convidado.telefone || '—';
+                    const nome = convidado.nome || 'Nome não informado';
+
+                    row.innerHTML = `
+                        <td data-label="Nome">${nome}</td>
+                        <td data-label="Telefone">${telefone}</td>
+                        <td data-label="Presente Físico">${presente}</td>
+                        <td data-label="Data Confirmação">${dataConfirmacao}</td>
+                    `;
+                    guestListBody.appendChild(row);
+                });
+            } else {
+                // --- MELHORIA: Mensagem para lista vazia ---
+                if (guestCountDisplay) {
+                    guestCountDisplay.textContent = 0;
+                }
+                guestListBody.innerHTML = `<tr><td colspan="4">Nenhum convidado confirmado encontrado.</td></tr>`;
+            }
         } catch (error) {
-            alert(error.message);
-            sessionStorage.removeItem('authToken');
-            window.location.href = 'index.html';
+            console.error('Erro detalhado ao carregar convidados:', error);
+            // --- MELHORIA: Tratamento de erro menos agressivo ---
+            // Em vez de deslogar, exibe o erro na tabela
+            guestListBody.innerHTML = `<tr><td colspan="4" style="color: red;">Erro ao carregar a lista. Tente recarregar a página.</td></tr>`;
         }
     };
     
