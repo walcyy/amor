@@ -5,7 +5,6 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const { Parser } = require('json2csv');
-const { generateBRCode } = require('brazilian-utils'); // Pacote para gerar o PIX
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -178,37 +177,6 @@ app.get('/api/mensagem', async (req, res) => {
     }
 });
 
-// [NOVA ROTA] Para gerar o PIX Copia e Cola
-app.post('/api/pix/gerar', checkGuestAuth, async (req, res) => {
-    const { valor } = req.body;
-    if (!valor || isNaN(valor) || valor <= 0) {
-        return res.status(400).json({ success: false, message: 'Valor inválido.' });
-    }
-    
-    try {
-        const [rows] = await pool.query("SELECT chave_pix FROM presentes WHERE tipo = 'pix' LIMIT 1");
-        if (rows.length === 0 || !rows[0].chave_pix) {
-            return res.status(500).json({ success: false, message: 'Chave PIX não configurada.' });
-        }
-        
-        const chavePix = rows[0].chave_pix;
-        
-        const brCode = generateBRCode({
-            key: chavePix,
-            amount: parseFloat(valor),
-            name: 'Steffany e Walci',
-            city: 'GRAMADO',
-            message: 'Presente de Casamento',
-        });
-
-        res.json({ success: true, brCode });
-
-    } catch (error) {
-        console.error("Erro ao gerar código PIX:", error);
-        res.status(500).json({ success: false, message: 'Não foi possível gerar o código PIX.' });
-    }
-});
-
 // --- ROTAS DE ADMIN ---
 const checkAuth = (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
@@ -308,7 +276,7 @@ app.post('/api/fotos/upload', checkAuth, uploadFoto.single('foto'), async (req, 
         const [result] = await pool.query("INSERT INTO fotos (imagem_url, descricao) VALUES (?, ?)", [imagemUrl, descricao]);
         res.json({ success: true, message: 'Foto enviada com sucesso!', fotoId: result.insertId, url: imagemUrl });
     } catch (error) {
-        console.error('Erro ao upload da foto:', error);
+        console.error('Erro no upload da foto:', error);
         res.status(500).json({ success: false, message: 'Erro ao salvar a foto.' });
     }
 });

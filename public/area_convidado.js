@@ -13,32 +13,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const customWelcomeMessageEl = document.getElementById('customWelcomeMessage');
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
-    const giftListContainer = document.getElementById('giftListContainer');
-    const photoGalleryContainer = document.getElementById('photoGalleryContainer');
-    const giftSearchInput = document.getElementById('giftSearchInput');
     
-    // Elementos do Modal de Contribuição
+    // [CORRIGIDO] O ID do container de presentes no HTML é "gifts"
+    const giftListContainer = document.getElementById('gifts'); 
+
     const contributionModal = document.getElementById('contributionModal');
     const closeContributionBtn = document.getElementById('closeContributionBtn');
-    const contributionTitle = document.getElementById('contributionTitle');
-    const contributionDescription = document.getElementById('contributionDescription');
-    const pixInfo = document.getElementById('pixInfo');
-    const pixKeyDisplay = document.querySelector('.pix-key-display');
-    const honeymoonInfo = document.getElementById('honeymoonInfo');
-
-    // Passos do Modal
-    const step1Value = document.getElementById('step1Value');
-    const step2Copy = document.getElementById('step2Copy');
-    const step3Upload = document.getElementById('step3Upload');
-
-    // Formulários e botões dos Passos
-    const valueForm = document.getElementById('valueForm');
     const contributionForm = document.getElementById('contributionForm');
-    const copyBrCodeBtn = document.getElementById('copyBrCodeBtn');
-    const paymentDoneBtn = document.getElementById('paymentDoneBtn');
-    const qrCodeContainer = document.getElementById('qrCodeContainer');
-    const brCodeText = document.getElementById('brCodeText');
-
+    const photoGalleryContainer = document.getElementById('photoGalleryContainer');
+    const giftSearchInput = document.getElementById('giftSearchInput');
+    let allGifts = {}; // Guarda a lista original de presentes
 
     if (welcomeMessageEl) {
         welcomeMessageEl.textContent = `Bem-vindo(a), ${guestName}!`;
@@ -87,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
                     }
                 } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
-                     content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
+                         content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
                 }
                 itemDiv.innerHTML = content;
                 grid.appendChild(itemDiv);
@@ -99,7 +83,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     
     // Busca a lista de presentes da API
-    let allGifts = {};
     const loadGifts = async () => {
         if (!giftListContainer) return;
         giftListContainer.innerHTML = '<p>Carregando presentes...</p>';
@@ -173,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Lida com cliques na lista de presentes (para abrir modal ou selecionar)
+    // Lógica para abrir modal de contribuição e selecionar presente físico
     if (giftListContainer) {
         giftListContainer.addEventListener('click', async (event) => {
             const target = event.target;
@@ -181,21 +164,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const tipo = target.dataset.type;
                 const title = target.dataset.title;
                 const pixKey = target.dataset.pixkey;
-                
-                contributionTitle.textContent = title;
-                contributionDescription.textContent = (tipo === 'pix') ? 'Digite o valor que deseja presentear via PIX.' : 'Digite o valor com o qual deseja contribuir.';
-                if(pixKeyDisplay) pixKeyDisplay.textContent = pixKey;
-
-                pixInfo.style.display = (tipo === 'pix') ? 'block' : 'none';
-                honeymoonInfo.style.display = (tipo === 'lua_de_mel') ? 'block' : 'none';
-                
-                sessionStorage.setItem('contributionType', tipo);
-                valueForm.reset();
-                contributionForm.reset();
-                step1Value.style.display = 'block';
-                step2Copy.style.display = 'none';
-                step3Upload.style.display = 'none';
-                
+                document.getElementById('contributionTitle').textContent = title;
+                document.getElementById('contributionType').value = tipo;
+                const pixInfoDiv = document.getElementById('pixInfo');
+                if (pixInfoDiv.querySelector('.pix-key')) {
+                     pixInfoDiv.querySelector('.pix-key').textContent = pixKey;
+                }
+                pixInfoDiv.style.display = (tipo === 'pix') ? 'block' : 'none';
+                document.getElementById('honeymoonInfo').style.display = (tipo === 'lua_de_mel') ? 'block' : 'none';
                 contributionModal.style.display = 'block';
             }
     
@@ -220,73 +196,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Lida com os 3 passos do modal de contribuição
+    // Fecha o modal de contribuição
     if(closeContributionBtn) closeContributionBtn.onclick = () => contributionModal.style.display = 'none';
 
-    if (valueForm) {
-        valueForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const valor = document.getElementById('contributionValue').value;
-            const tipo = sessionStorage.getItem('contributionType');
-            
-            if (tipo === 'lua_de_mel') { // Pula direto para o passo 3 para cotas
-                sessionStorage.setItem('contributionValue', valor);
-                document.getElementById('finalValue').textContent = parseFloat(valor).toFixed(2);
-                document.getElementById('finalContributionValue').value = valor;
-                document.getElementById('contributionType').value = tipo;
-                step1Value.style.display = 'none';
-                step3Upload.style.display = 'block';
-                return;
-            }
-
-            // Continua para o passo 2 para PIX
-            try {
-                const response = await fetch('/api/pix/gerar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${guestToken}` },
-                    body: JSON.stringify({ valor })
-                });
-                const result = await response.json();
-                if(result.success) {
-                    sessionStorage.setItem('contributionValue', valor);
-                    document.getElementById('displayValue').textContent = parseFloat(valor).toFixed(2);
-                    if(brCodeText) brCodeText.value = result.brCode;
-                    
-                    const qr = qrcode(0, 'M');
-                    qr.addData(result.brCode);
-                    qr.make();
-                    if(qrCodeContainer) qrCodeContainer.innerHTML = qr.createImgTag(5);
-
-                    step1Value.style.display = 'none';
-                    step2Copy.style.display = 'block';
-                } else {
-                    alert(result.message);
-                }
-            } catch (error) { alert('Erro ao gerar código PIX.'); }
-        });
-    }
-
-    if (copyBrCodeBtn) {
-        copyBrCodeBtn.addEventListener('click', () => {
-            if(brCodeText) {
-                brCodeText.select();
-                document.execCommand('copy');
-                alert('Código PIX Copia e Cola copiado!');
-            }
-        });
-    }
-
-    if (paymentDoneBtn) {
-        paymentDoneBtn.addEventListener('click', () => {
-            const valor = sessionStorage.getItem('contributionValue');
-            document.getElementById('finalValue').textContent = parseFloat(valor).toFixed(2);
-            document.getElementById('finalContributionValue').value = valor;
-            document.getElementById('contributionType').value = sessionStorage.getItem('contributionType');
-            step2Copy.style.display = 'none';
-            step3Upload.style.display = 'block';
-        });
-    }
-
+    // Lida com o envio do formulário de contribuição
     if(contributionForm) {
         contributionForm.addEventListener('submit', async (event) => {
             event.preventDefault();
