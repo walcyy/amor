@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner de QR Code - Casamento</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="scanner-container">
+        <header class="scanner-header">
+            <h1>Check-in de Convidados</h1>
+            <a href="admin.html" class="back-link-scanner">Voltar ao Painel</a>
+        </header>
+
+        <main>
+            <div id="qr-reader" class="scanner-box"></div>
+            <div id="scan-result" class="scan-result">
+                <p>Aponte a câmera para o QR Code do convidado.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="scanner.js"></script>
+</body>
+</html>

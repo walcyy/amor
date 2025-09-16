@@ -64,6 +64,61 @@
             </form>
         </div>
     </div>
+    <script src="area_convidado.js"></script><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do Convidado - Steffany & Walci</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container admin-container">
+        <header class="header">
+            <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Voltar ao Convite</a>
+            <h2 id="welcomeMessage">Bem-vindo(a)!</h2>
+            <h1>Área do Convidado</h1>
+            <p id="customWelcomeMessage" class="custom-welcome-message"></p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-link active" data-tab="gifts">Lista de Presentes</button>
+            <button class="tab-link" data-tab="photos">Nossas Fotos</button>
+            <button class="tab-link" data-tab="qrcode">Meu Ingresso QR Code</button>
+        </div>
+
+        <div id="gifts" class="tab-content active">
+            <div class="search-container">
+                <input type="text" id="giftSearchInput" placeholder="🔎 Buscar presente pelo nome...">
+            </div>
+            <section id="giftListContainer" class="gift-list-section"></section>
+        </div>
+        
+        <div id="photos" class="tab-content">
+            <section id="photoGalleryContainer" class="photo-gallery-section"></section>
+        </div>
+
+        <div id="qrcode" class="tab-content">
+            <section class="qrcode-section">
+                <h3>Seu Ingresso para o Evento</h3>
+                <p>Apresente este QR Code na recepção para fazer o seu check-in. Você pode tirar um print da tela para facilitar.</p>
+                <div id="qrcode-container" class="qrcode-container">
+                    </div>
+            </section>
+        </div>
+
+        <footer class="footer">
+             <p>© 2025 Steffany & Walci. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <div id="contributionModal" class="modal">
+        </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator/qrcode.js"></script>
     <script src="area_convidado.js"></script>
+</body>
+</html>
 </body>
 </html>

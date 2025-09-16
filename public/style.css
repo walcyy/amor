@@ -90,7 +90,7 @@ body {
     margin-bottom: 10px;
     position: relative;
     animation: slideInLeft 1s ease-out;
-    padding-top: 50px; /* Adiciona espaço para os botões de login não sobreporem o título */
+    padding-top: 50px;
 }
 
 @keyframes slideInLeft {
@@ -167,6 +167,7 @@ p {
     line-height: 1.8;
 }
 
+/* =================== CONTAGEM =================== */
 .countdown {
     display: flex;
     justify-content: center;
@@ -201,6 +202,7 @@ p {
     font-family: 'Great Vibes', cursive;
 }
 
+/* =================== DETALHES =================== */
 .details-section {
     display: flex;
     flex-wrap: wrap;
@@ -246,6 +248,7 @@ p {
     color: var(--accent-color);
 }
 
+/* =================== BOTOES =================== */
 .btn {
     display: inline-block;
     background: var(--accent-color);
@@ -268,8 +271,7 @@ p {
     transform: translateY(-3px);
 }
 
-/* ... (O resto do CSS principal que já tínhamos) ... */
-
+/* =================== MODAL =================== */
 .modal {
     display: none; 
     position: fixed;
@@ -331,6 +333,7 @@ p {
     text-align: left;
 }
 
+/* =================== FORMULARIOS =================== */
 #rsvpForm, #adminLoginForm, #guestLoginForm, #contributionForm {
     display: flex;
     flex-direction: column;
@@ -354,28 +357,7 @@ p {
     width: 100%;
 }
 
-<<<<<<< HEAD
-=======
-.pix-key {
-    background: #e0e0e0;
-    padding: 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    color: var(--text-color-dark);
-    text-align: center;
-    user-select: all; 
-}
-
-
->>>>>>> parent of c4100f2 (Função Pix)
-/* ============================================== */
-/* == NOVOS ESTILOS (Admin, Convidados, etc.) == */
-/* ============================================== */
-
-.confirmation-container, .admin-container {
-    max-width: 1000px;
-}
-
+/* =================== LINKS VOLTAR =================== */
 .back-link {
     position: absolute;
     top: 25px;
@@ -395,6 +377,7 @@ p {
     margin-right: 8px;
 }
 
+/* =================== ADMIN =================== */
 .admin-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -442,11 +425,13 @@ p {
     resize: vertical;
 }
 
+/* =================== LISTAS =================== */
 .confirmation-details, .guest-list-section, .donations-list-section, .gift-list-section, .photo-management-section, .photo-gallery-section {
     border-top: 1px solid rgba(255, 255, 255, 0.2);
     padding-top: 20px;
 }
 
+/* =================== DASHBOARD =================== */
 .dashboard-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -473,6 +458,7 @@ p {
     text-shadow: none;
 }
 
+/* =================== TABS =================== */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -486,41 +472,18 @@ p {
     font-size: 2em;
     color: var(--accent-color);
 }
-
-.guest-table {
-    width: 100%;
-    border-collapse: collapse;
-    color: var(--text-color-light);
-    background-color: rgba(0, 0, 0, 0.2);
-}
-.guest-table th, .guest-table td {
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 12px;
-    text-align: left;
-    vertical-align: middle;
-}
-.guest-table th {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--accent-color);
-}
-.status-pending { color: #ffc107; font-weight: bold; }
-.status-confirmed { color: #28a745; font-weight: bold; }
-.btn-confirm { padding: 5px 10px; font-size: 0.8em; margin: 0; }
-
-.custom-welcome-message, #welcomeMessage { font-weight: bold; color: var(--accent-color); }
-#welcomeMessage { font-size: 1.5em; margin-bottom: 10px; font-family: 'Open Sans', sans-serif; }
-.custom-welcome-message { font-style: italic; opacity: 0.9; margin-top: -10px; max-width: 700px; margin-left: auto; margin-right: auto; }
-
 .tabs { margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
 .tab-link { background: none; border: none; color: var(--text-color-light); padding: 10px 20px; cursor: pointer; font-size: 1.1em; opacity: 0.6; border-bottom: 3px solid transparent; }
 .tab-link.active { opacity: 1; border-bottom-color: var(--accent-color); }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
+/* =================== PESQUISA =================== */
 .search-container { margin-bottom: 20px; }
 #giftSearchInput { width: 100%; max-width: 400px; padding: 10px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.3); color: var(--white); font-size: 1em; }
 #giftSearchInput::placeholder { color: #ccc; }
 
+/* =================== GIFTS =================== */
 .category-accordion details { margin-bottom: 10px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(0,0,0,0.1); }
 .category-accordion summary { padding: 15px; font-weight: bold; font-size: 1.2em; cursor: pointer; outline: none; color: var(--accent-color); }
 .gift-items-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; padding: 15px; }
@@ -533,6 +496,7 @@ p {
 #contributionForm p { color: var(--text-color-dark); }
 .login-message { margin-top: 15px; font-weight: bold; color: red; min-height: 1.2em; }
 
+/* =================== PHOTO GALLERY =================== */
 .photo-gallery-section .photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
 .photo-card img { width: 100%; border-radius: 8px; transition: transform 0.3s ease; }
 .photo-card img:hover { transform: scale(1.05); }
@@ -540,6 +504,7 @@ p {
 .form-container #uploadedPhotoPreview { max-width: 150px; display: block; margin: 10px 0; border-radius: 5px; }
 .form-container #guestTags { height: 200px; }
 
+/* =================== MEDIA QUERIES =================== */
 @media (max-width: 768px) {
     .container { padding: 25px; }
     .header h1 { font-size: 3.5em; padding-top: 70px; }
@@ -566,3 +531,67 @@ p {
     .countdown span { font-size: 1.8em; }
     .login-buttons-container { width: 100%; position: static; padding-bottom: 20px; justify-content: center; }
 }
+
+/* =================== SCANNER / QR CODE =================== */
+.scanner-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    color: var(--white);
+}
+.scanner-header {
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    position: relative;
+}
+.scanner-header h1 {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 300;
+}
+.back-link-scanner {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    color: var(--text-color-light);
+    text-decoration: none;
+}
+.scanner-box {
+    width: 100%;
+    border: 2px solid #555;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    background-color: white;
+}
+.scan-result {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color 0.5s ease;
+}
+.scan-result.success {
+    background-color: #28a745; /* Verde */
+    color: white;
+}
+.scan-result.error {
+    background-color: #dc3545; /* Vermelho */
+    color: white;
+}
+.header-buttons {
+    margin-top: 20px;
+}
+.scanner-container img {
+    width: 200px !important;
+    height: 200px !important;
+    border-radius: 8px;
+}
+
+/* =================== FIM SCANNER / QR CODE =================== */

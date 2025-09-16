@@ -5,6 +5,8 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const { Parser } = require('json2csv');
+const { generateBRCode } = require('brazilian-utils');
+const qrcode = require('qrcode'); // [NOVO] Pacote para gerar QR Code
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -89,6 +91,19 @@ const checkGuestAuth = (req, res, next) => {
         res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
     }
 };
+
+// [NOVA ROTA] Para o convidado buscar seu QR Code de entrada
+app.get('/api/meu-qrcode', checkGuestAuth, async (req, res) => {
+    const { guestId } = req;
+    try {
+        // O conteúdo do QR Code será simplesmente o ID do convidado, que é único e seguro.
+        const qrCodeDataURL = await qrcode.toDataURL(guestId);
+        res.json({ success: true, data: qrCodeDataURL });
+    } catch (error) {
+        console.error('Erro ao gerar QR Code:', error);
+        res.status(500).json({ success: false, message: 'Erro ao gerar seu QR Code.' });
+    }
+});
 
 app.get('/api/presentes', async (req, res) => {
     try {
@@ -186,6 +201,37 @@ const checkAuth = (req, res, next) => {
         res.status(403).json({ success: false, message: 'Acesso não autorizado.' });
     }
 };
+
+// [NOVA ROTA] Para a recepção validar um QR Code escaneado
+app.post('/api/validar-qrcode', checkAuth, async (req, res) => {
+    const { guestId } = req.body; // O ID do convidado virá do QR Code escaneado
+    if (!guestId) {
+        return res.status(400).json({ success: false, message: 'QR Code inválido.' });
+    }
+
+    try {
+        const [guests] = await pool.query("SELECT nome, status_checkin FROM convidados WHERE id = ?", [guestId]);
+
+        if (guests.length === 0) {
+            return res.status(404).json({ success: false, message: 'Convidado não encontrado no sistema.' });
+        }
+
+        const convidado = guests[0];
+
+        if (convidado.status_checkin === 'realizado') {
+            return res.status(409).json({ success: false, message: `ATENÇÃO: Check-in já realizado para ${convidado.nome}.` });
+        }
+
+        // Se o status for 'pendente', atualiza para 'realizado'
+        await pool.query("UPDATE convidados SET status_checkin = 'realizado' WHERE id = ?", [guestId]);
+
+        res.json({ success: true, message: `Check-in confirmado! Bem-vindo(a), ${convidado.nome}!` });
+
+    } catch (error) {
+        console.error('Erro ao validar QR Code:', error);
+        res.status(500).json({ success: false, message: 'Erro no servidor durante a validação.' });
+    }
+});
     
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;

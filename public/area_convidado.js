@@ -13,10 +13,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const customWelcomeMessageEl = document.getElementById('customWelcomeMessage');
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
-    
-    // [CORRIGIDO] O ID do container de presentes no HTML é "gifts"
+    const qrCodeContainer = document.getElementById('qrcode-container'); // [NOVO]
     const giftListContainer = document.getElementById('gifts'); 
-
     const contributionModal = document.getElementById('contributionModal');
     const closeContributionBtn = document.getElementById('closeContributionBtn');
     const contributionForm = document.getElementById('contributionForm');
@@ -34,9 +32,35 @@ document.addEventListener('DOMContentLoaded', async () => {
             tabs.forEach(item => item.classList.remove('active'));
             tab.classList.add('active');
             tabContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(tab.dataset.tab).classList.add('active');
+            const activeTabContent = document.getElementById(tab.dataset.tab);
+            if (activeTabContent) activeTabContent.classList.add('active');
+
+            // [NOVO] Carrega o QR Code apenas quando a aba é clicada pela primeira vez
+            if (tab.dataset.tab === 'qrcode' && qrCodeContainer && !qrCodeContainer.hasChildNodes()) {
+                loadQRCode();
+            }
         });
     });
+
+    // [NOVA FUNÇÃO] para buscar e exibir o QR Code
+    const loadQRCode = async () => {
+        if (!qrCodeContainer) return;
+        qrCodeContainer.innerHTML = '<p>Gerando seu QR Code...</p>';
+        try {
+            const response = await fetch('/api/meu-qrcode', {
+                headers: { 'Authorization': `Bearer ${guestToken}` }
+            });
+            const result = await response.json();
+            if (result.success) {
+                qrCodeContainer.innerHTML = `<img src="${result.data}" alt="Seu QR Code de Entrada">`;
+            } else {
+                qrCodeContainer.innerHTML = `<p>${result.message}</p>`;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar QR Code:', error);
+            qrCodeContainer.innerHTML = '<p>Não foi possível gerar seu QR Code. Tente novamente.</p>';
+        }
+    };
 
     // Renderiza a lista de presentes na tela
     const renderGifts = (categories) => {
@@ -71,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         content += `<button class="btn btn-select-gift" data-id="${presente.id}">Quero presentear</button>`;
                     }
                 } else if (presente.tipo === 'lua_de_mel' || presente.tipo === 'pix') {
-                         content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
+                    content += `<button class="btn btn-contribute" data-type="${presente.tipo}" data-title="${presente.titulo}" data-pixkey="${presente.chave_pix || ''}">${presente.texto_botao}</button>`;
                 }
                 itemDiv.innerHTML = content;
                 grid.appendChild(itemDiv);
@@ -228,7 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Carrega os dados iniciais da página
+    // Carrega os dados iniciais da página (sem QR Code ainda)
     loadGifts();
     loadPhotos();
     loadCustomMessage();
