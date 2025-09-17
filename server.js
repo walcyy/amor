@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
 const { Parser } = require('json2csv');
-const { generateBRCode } = require('brazilian-utils');
+const { generateBRCode } = require('pix-utils'); 
 const qrcode = require('qrcode'); // [NOVO] Pacote para gerar QR Code
 
 const app = express();
